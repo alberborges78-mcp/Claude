@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Dashboard de análise de dados e finanças">
+  <title>FinSight | Dashboard financeiro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand"><span class="brand-mark">F</span><span>FinSight</span></div>
+      <nav class="main-nav" aria-label="Navegação principal">
+        <p class="nav-label">Workspace</p>
+        <a class="nav-item active" href="#overview"><span class="nav-icon">▦</span> Visão geral</a>
+        <a class="nav-item" href="#analytics"><span class="nav-icon">⌁</span> Analytics</a>
+        <a class="nav-item" href="#transactions"><span class="nav-icon">↕</span> Transações <span class="nav-badge">12</span></a>
+        <a class="nav-item" href="#reports"><span class="nav-icon">▤</span> Relatórios</a>
+        <p class="nav-label secondary-label">Gerenciar</p>
+        <a class="nav-item" href="#accounts"><span class="nav-icon">◎</span> Contas</a>
+        <a class="nav-item" href="#settings"><span class="nav-icon">⚙</span> Configurações</a>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="upgrade-card"><span class="upgrade-icon">✦</span><strong>FinSight Pro</strong><p>Desbloqueie análises avançadas.</p><button>Conhecer plano <span>↗</span></button></div>
+        <div class="user-profile"><div class="avatar">MC</div><div><strong>Marina Costa</strong><span>Administrador</span></div><button class="more-button" aria-label="Mais opções">•••</button></div>
+      </div>
+    </aside>
+
+    <main class="main-content" id="overview">
+      <header class="topbar">
+        <button class="mobile-menu" id="mobileMenu" aria-label="Abrir menu">☰</button>
+        <div class="breadcrumb"><span>Workspace</span><b>/</b><strong>Visão geral</strong></div>
+        <div class="topbar-actions">
+          <button class="icon-button" aria-label="Pesquisar">⌕</button>
+          <button class="icon-button notification" aria-label="Notificações">♢<i></i></button>
+          <div class="top-avatar">MC</div>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <section class="welcome-row">
+          <div><p class="eyebrow">QUARTA-FEIRA, 26 DE AGOSTO DE 2026</p><h1>Bom dia, Marina <span>✦</span></h1><p class="subtitle">Aqui está o resumo da performance financeira da sua empresa.</p></div>
+          <div class="header-actions"><button class="outline-button" id="exportButton"><span>⇩</span> Exportar</button><button class="primary-button" id="newTransaction"><span>＋</span> Nova transação</button></div>
+        </section>
+
+        <section class="metric-grid" aria-label="Indicadores principais">
+          <article class="metric-card"><div class="metric-top"><span class="metric-label">Receita total</span><span class="metric-icon green">↗</span></div><div class="metric-value">R$ 284.548,00</div><div class="metric-foot"><span class="trend positive">↑ 12,8%</span><span>vs. mês anterior</span></div><div class="mini-chart green-chart" data-values="20,28,24,38,31,44,42,58,49,68,62,78"></div></article>
+          <article class="metric-card"><div class="metric-top"><span class="metric-label">Despesas</span><span class="metric-icon orange">↘</span></div><div class="metric-value">R$ 98.240,00</div><div class="metric-foot"><span class="trend negative">↑ 4,6%</span><span>vs. mês anterior</span></div><div class="mini-chart orange-chart" data-values="62,54,58,45,51,43,49,36,42,31,34,27"></div></article>
+          <article class="metric-card"><div class="metric-top"><span class="metric-label">Lucro líquido</span><span class="metric-icon blue">◈</span></div><div class="metric-value">R$ 186.308,00</div><div class="metric-foot"><span class="trend positive">↑ 18,2%</span><span>vs. mês anterior</span></div><div class="mini-chart blue-chart" data-values="25,22,31,29,41,37,48,51,58,54,69,76"></div></article>
+          <article class="metric-card"><div class="metric-top"><span class="metric-label">Margem de lucro</span><span class="metric-icon purple">%</span></div><div class="metric-value">65,5%</div><div class="metric-foot"><span class="trend positive">↑ 2,4%</span><span>vs. mês anterior</span></div><div class="mini-chart purple-chart" data-values="42,46,43,51,48,53,55,52,60,57,63,66"></div></article>
+        </section>
+
+        <section class="analytics-grid" id="analytics">
+          <article class="panel revenue-panel"><div class="panel-header"><div><h2>Visão financeira</h2><p>Receitas e despesas ao longo do tempo</p></div><div class="panel-controls"><div class="legend"><span><i class="dot revenue-dot"></i>Receita</span><span><i class="dot expense-dot"></i>Despesas</span></div><select id="periodSelect" aria-label="Período do gráfico"><option>Últimos 12 meses</option><option>Últimos 6 meses</option><option>Este ano</option></select></div></div><div class="chart-wrap"><div class="chart-y-axis"><span>R$ 300k</span><span>R$ 200k</span><span>R$ 100k</span><span>R$ 0</span></div><div class="line-chart" id="lineChart"><div class="chart-grid-lines"><i></i><i></i><i></i><i></i></div><svg viewBox="0 0 800 260" preserveAspectRatio="none" role="img" aria-label="Gráfico de receita e despesas"><defs><linearGradient id="revenueFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#61d7a2" stop-opacity=".22"/><stop offset="1" stop-color="#61d7a2" stop-opacity="0"/></linearGradient></defs><path class="area-path" d="M0 190 C50 170 65 150 125 164 S190 110 250 132 S315 92 370 108 S445 42 500 70 S570 45 620 64 S685 24 730 42 S770 15 800 25 L800 260 L0 260Z"/><path class="line revenue-line" d="M0 190 C50 170 65 150 125 164 S190 110 250 132 S315 92 370 108 S445 42 500 70 S570 45 620 64 S685 24 730 42 S770 15 800 25"/><path class="line expense-line" d="M0 224 C60 215 72 190 125 204 S190 178 250 192 S315 155 370 172 S430 124 500 150 S560 130 620 142 S680 105 730 124 S770 95 800 104"/><circle class="chart-point" cx="500" cy="70" r="5"/><g class="tooltip-point"><rect x="455" y="5" width="90" height="38" rx="5"/><text x="500" y="21">R$ 248.5k</text><text x="500" y="34">Receita</text></g></svg><div class="chart-months"><span>Set</span><span>Out</span><span>Nov</span><span>Dez</span><span>Jan</span><span>Fev</span><span>Mar</span><span>Abr</span><span>Mai</span><span>Jun</span><span>Jul</span><span>Ago</span></div></div></div></article>
+          <article class="panel portfolio-panel"><div class="panel-header"><div><h2>Composição</h2><p>Distribuição do patrimônio</p></div><button class="kebab" aria-label="Mais opções">•••</button></div><div class="donut-area"><div class="donut"><div class="donut-center"><strong>R$ 1,2M</strong><span>Total</span></div></div></div><div class="portfolio-list"><div><span><i class="asset-dot dot-green"></i>Investimentos</span><strong>42,5%</strong></div><div><span><i class="asset-dot dot-blue"></i>Disponível</span><strong>28,2%</strong></div><div><span><i class="asset-dot dot-orange"></i>Imobilizado</span><strong>18,8%</strong></div><div><span><i class="asset-dot dot-purple"></i>Outros</span><strong>10,5%</strong></div></div></article>
+        </section>
+
+        <section class="bottom-grid" id="transactions"><article class="panel transactions-panel"><div class="panel-header"><div><h2>Transações recentes</h2><p>Últimas movimentações da sua conta</p></div><button class="text-button">Ver todas <span>→</span></button></div><div class="table-wrap"><table><thead><tr><th>DESCRIÇÃO</th><th>CATEGORIA</th><th>DATA</th><th>STATUS</th><th class="align-right">VALOR</th></tr></thead><tbody id="transactionsBody"></tbody></table></div></article><article class="panel goals-panel"><div class="panel-header"><div><h2>Metas financeiras</h2><p>Acompanhe seus objetivos</p></div><button class="kebab" aria-label="Mais opções">•••</button></div><div class="goal"><div class="goal-heading"><div><span class="goal-icon house">⌂</span><strong>Reserva de emergência</strong></div><span>68%</span></div><div class="progress"><i style="width:68%"></i></div><small>R$ 34.000 <em>de R$ 50.000</em></small></div><div class="goal"><div class="goal-heading"><div><span class="goal-icon plane">⌁</span><strong>Viagem internacional</strong></div><span>42%</span></div><div class="progress blue-progress"><i style="width:42%"></i></div><small>R$ 8.400 <em>de R$ 20.000</em></small></div><button class="add-goal">＋ Adicionar nova meta</button></article></section>
+        <footer><span>© 2026 FinSight</span><span>Dados atualizados há 5 minutos <i class="live-dot"></i></span></footer>
+      </div>
+    </main>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
