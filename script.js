@@ -1,20 +1,48 @@
-const transactions = [
-  { name: 'Pagamento recebido', category: 'Vendas', date: '26 ago, 2026', status: 'Concluído', value: '+ R$ 12.450,00', icon: '↗', tone: '' },
-  { name: 'Google Workspace', category: 'Assinaturas', date: '25 ago, 2026', status: 'Concluído', value: '- R$ 540,00', icon: 'G', tone: 'orange' },
-  { name: 'Transferência recebida', category: 'Serviços', date: '24 ago, 2026', status: 'Concluído', value: '+ R$ 8.200,00', icon: '↙', tone: 'blue' },
-  { name: 'Adobe Creative Cloud', category: 'Ferramentas', date: '23 ago, 2026', status: 'Pendente', value: '- R$ 289,90', icon: 'A', tone: 'purple' }
-];
-
+const storageKey = 'finsight-launches';
+let transactions = JSON.parse(localStorage.getItem(storageKey) || '[]');
+const currency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const body = document.querySelector('#transactionsBody');
-body.innerHTML = transactions.map((transaction) => `
-  <tr><td><div class="transaction-name"><span class="transaction-icon ${transaction.tone}">${transaction.icon}</span>${transaction.name}</div></td>
-  <td class="category">${transaction.category}</td><td class="category">${transaction.date}</td>
-  <td><span class="status ${transaction.status === 'Concluído' ? 'completed' : 'pending'}">${transaction.status}</span></td>
-  <td class="align-right ${transaction.value.startsWith('+') ? 'positive' : ''}">${transaction.value}</td></tr>
-`).join('');
+function formatCurrency(value) { return currency.format(value); }
+function updateDashboard() {
+  const income = transactions.filter((item) => item.type === 'income').reduce((total, item) => total + item.amount, 0);
+  const expense = transactions.filter((item) => item.type === 'expense').reduce((total, item) => total + item.amount, 0);
+  const moved = income + expense;
+  const incomePercent = moved ? Math.round((income / moved) * 100) : 0;
+  document.querySelector('#totalIncome').textContent = formatCurrency(income);
+  document.querySelector('#totalExpense').textContent = formatCurrency(expense);
+  document.querySelector('#netBalance').textContent = formatCurrency(income - expense);
+  document.querySelector('#donutTotal').textContent = formatCurrency(moved);
+  document.querySelector('#incomePercent').textContent = `${incomePercent}%`;
+  document.querySelector('#expensePercent').textContent = `${100 - incomePercent}%`;
+  document.querySelector('#balanceDonut').style.background = `conic-gradient(var(--green) 0 ${incomePercent}%, var(--orange) ${incomePercent}% 100%)`;
+  document.querySelector('#entryCount').textContent = `${transactions.length} lançamento${transactions.length === 1 ? '' : 's'}`;
+  renderTransactions();
+}
+function renderTransactions() {
+  document.querySelector('#emptyState').hidden = transactions.length > 0;
+  body.innerHTML = transactions.slice().reverse().map((item) => `<tr><td><div class="transaction-name"><span class="transaction-icon ${item.type === 'income' ? '' : 'orange'}">${item.type === 'income' ? '↗' : '↘'}</span>${item.description}</div></td><td class="category">${item.category}</td><td class="category">${item.date}</td><td><span class="status ${item.type === 'income' ? 'completed' : 'pending'}">${item.type === 'income' ? 'Ganho' : 'Gasto'}</span></td><td class="align-right ${item.type === 'income' ? 'positive' : 'negative'}">${item.type === 'income' ? '+' : '-'} ${formatCurrency(item.amount)}</td><td class="align-right"><button class="delete-button" data-id="${item.id}" aria-label="Excluir ${item.description}">Excluir</button></td></tr>`).join('');
+}
+document.querySelector('#entryForm').addEventListener('submit', (event) => {
+  event.preventDefault();
+  const form = new FormData(event.currentTarget);
+  transactions.push({ id: Date.now(), description: form.get('description').trim(), amount: Number(form.get('amount')), type: form.get('type'), category: form.get('category'), date: new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date()) });
+  localStorage.setItem(storageKey, JSON.stringify(transactions));
+  event.currentTarget.reset();
+  document.querySelector('#formStatus').textContent = 'Lançamento salvo';
+  setTimeout(() => { document.querySelector('#formStatus').textContent = ''; }, 2200);
+  updateDashboard();
+});
+body.addEventListener('click', (event) => {
+  const button = event.target.closest('.delete-button');
+  if (!button) return;
+  transactions = transactions.filter((item) => String(item.id) !== button.dataset.id);
+  localStorage.setItem(storageKey, JSON.stringify(transactions));
+  updateDashboard();
+});
 
 // Draw small trend lines as lightweight inline SVGs, keeping the cards data-driven.
 document.querySelectorAll('.mini-chart').forEach((chart) => {
+  if (!chart.dataset.values) return;
   const values = chart.dataset.values.split(',').map(Number);
   const max = Math.max(...values);
   const points = values.map((value, index) => `${(index / (values.length - 1)) * 100},${31 - (value / max) * 27}`).join(' ');
@@ -32,9 +60,7 @@ document.querySelector('#exportButton').addEventListener('click', (event) => {
   setTimeout(() => { button.innerHTML = original; }, 1800);
 });
 
-document.querySelector('#newTransaction').addEventListener('click', () => {
-  window.alert('Formulário de nova transação disponível na versão completa.');
-});
+document.querySelector('#newTransaction').addEventListener('click', () => document.querySelector('#entry-form').scrollIntoView({ behavior: 'smooth', block: 'center' }));
 
 document.querySelector('#periodSelect').addEventListener('change', (event) => {
   const chart = document.querySelector('#lineChart');
@@ -51,3 +77,5 @@ themeButton.addEventListener('click', () => {
   document.body.classList.toggle('dark');
   themeButton.textContent = document.body.classList.contains('dark') ? '○' : '◐';
 });
+
+updateDashboard();
