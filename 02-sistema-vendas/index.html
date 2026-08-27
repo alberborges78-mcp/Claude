@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Sistema de Vendas e Faturamento - controle de pedidos, produção e estoque">
+  <title>Vendas &amp; Faturamento | Sistema de Confecção</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand"><span class="brand-mark">🧵</span><span>Vendas &amp; Faturamento</span></div>
+      <p class="module-tag">Módulo principal do sistema</p>
+
+      <nav class="main-nav" aria-label="Navegação principal">
+        <p class="nav-label">Abas do módulo</p>
+        <a class="nav-item active" data-tab="vendas" href="#vendas"><span class="nav-icon">💰</span> Vendas e Clientes <span class="nav-tag" id="adminTag">Admin</span></a>
+        <a class="nav-item" data-tab="producao" href="#producao"><span class="nav-icon">📋</span> Ordens de Produção <span class="nav-badge" id="pendingBadge">0</span></a>
+        <a class="nav-item" data-tab="estoque" href="#estoque"><span class="nav-icon">📦</span> Estoque de Insumos</a>
+        <a class="nav-item" data-tab="relatorios" href="#relatorios"><span class="nav-icon">📊</span> Relatórios Gerenciais</a>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="role-card">
+          <strong>Perfil de acesso</strong>
+          <p>Controla o que cada setor visualiza no sistema.</p>
+          <div class="role-toggle" id="roleToggle">
+            <button type="button" class="role-btn active" data-role="admin">🏢 Administração</button>
+            <button type="button" class="role-btn" data-role="fabrica">🏭 Fábrica</button>
+          </div>
+        </div>
+        <div class="user-profile"><div class="avatar" id="profileAvatar">AV</div><div><strong>Ateliê Vendas</strong><span id="roleLabel">Administração</span></div></div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <button class="mobile-menu" id="mobileMenu" aria-label="Abrir menu">☰</button>
+        <div class="breadcrumb"><span>Vendas &amp; Faturamento</span><b>/</b><strong id="breadcrumbCurrent">Vendas e Clientes</strong></div>
+        <div class="topbar-actions">
+          <button class="icon-button theme-button" id="themeButton" aria-label="Alternar modo escuro">◐</button>
+          <div class="top-avatar" id="topAvatar">AV</div>
+        </div>
+      </header>
+
+      <div class="page-content">
+
+        <!-- ABA 1 - VENDAS E CLIENTES -->
+        <section class="tab-panel" id="tab-vendas" data-role-restricted="admin">
+          <section class="welcome-row">
+            <div><p class="eyebrow">SETOR COMERCIAL</p><h1>💰 Vendas e Clientes <span>✦</span></h1><p class="subtitle">Cadastre o cliente, o pedido da malha, o preço e acompanhe o valor total das vendas.</p></div>
+            <div class="header-actions"><button class="primary-button" id="newSaleButton"><span>＋</span> Novo pedido de venda</button></div>
+          </section>
+
+          <section class="metric-grid">
+            <article class="metric-card"><span class="metric-label">Faturamento total</span><strong id="metricFaturamento">R$ 0,00</strong><small class="metric-hint">Soma de todas as vendas registradas</small></article>
+            <article class="metric-card"><span class="metric-label">Pedidos registrados</span><strong id="metricPedidos">0</strong><small class="metric-hint">Total de vendas no sistema</small></article>
+            <article class="metric-card"><span class="metric-label">Ticket médio</span><strong id="metricTicket">R$ 0,00</strong><small class="metric-hint">Valor médio por pedido</small></article>
+          </section>
+
+          <section class="panel entry-panel" id="entry-form" aria-labelledby="entry-title">
+            <div class="panel-header"><div><h2 id="entry-title">Novo pedido de venda</h2><p>Ao salvar, o pedido aparece automaticamente como Ordem de Produção pendente.</p></div><span class="form-status" id="formStatus" role="status"></span></div>
+            <form id="saleForm" class="entry-form sale-form">
+              <label>Cliente<input id="cliente" name="cliente" type="text" placeholder="Nome do cliente" required maxlength="60"></label>
+              <label>Telefone / Contato<input id="telefone" name="telefone" type="text" placeholder="(00) 00000-0000"></label>
+              <label>Modelo da malha<input id="modelo" name="modelo" type="text" placeholder="Ex: Blusa canelada" required maxlength="60"></label>
+              <label>Cor<input id="cor" name="cor" type="text" placeholder="Ex: Vinho" required maxlength="40"></label>
+              <label>Grade / Tamanhos<input id="grade" name="grade" type="text" placeholder="Ex: P:5, M:10, G:5" required maxlength="80"></label>
+              <label>Quantidade total (peças)<input id="quantidade" name="quantidade" type="number" min="1" step="1" placeholder="0" required></label>
+              <label>Preço unitário (R$)<input id="precoUnitario" name="precoUnitario" type="number" min="0.01" step="0.01" placeholder="0,00" required></label>
+              <label>Observações<input id="observacoes" name="observacoes" type="text" placeholder="Ex: Sem etiquetas, linha vermelha" maxlength="150"></label>
+              <label>Valor total (R$)<input id="valorTotalPreview" type="text" value="R$ 0,00" readonly></label>
+              <button type="submit" class="primary-button">Registrar venda</button>
+            </form>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header"><div><h2>Histórico de vendas</h2><p>Somente a administração visualiza preços e valores</p></div><span class="entry-count" id="salesCount">0 vendas</span></div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>CLIENTE</th><th>MODELO</th><th>COR</th><th>GRADE</th><th>QTD</th><th>PREÇO UNIT.</th><th class="align-right">VALOR TOTAL</th><th>STATUS</th><th></th></tr></thead>
+                <tbody id="salesBody"></tbody>
+              </table>
+              <p class="empty-state" id="salesEmptyState">Nenhuma venda registrada ainda. Adicione o primeiro pedido acima.</p>
+            </div>
+          </section>
+        </section>
+        <!-- ABA 2 - ORDENS DE PRODUÇÃO -->
+        <section class="tab-panel" id="tab-producao" hidden>
+          <section class="welcome-row">
+            <div><p class="eyebrow">SETOR DE FÁBRICA</p><h1>📋 Ordens de Produção <span>✦</span></h1><p class="subtitle">Lista de pedidos gerados no Comercial — apenas cliente, modelo, cor, observações e quantidades. Sem valores financeiros.</p></div>
+          </section>
+
+          <section class="metric-grid">
+            <article class="metric-card"><span class="metric-label">Aprovados</span><strong id="metricPendentes">0</strong><small class="metric-hint">Aguardando inicio de producao</small></article>
+            <article class="metric-card"><span class="metric-label">Em produção</span><strong id="metricEmProducao">0</strong><small class="metric-hint">Sendo confeccionadas agora</small></article>
+            <article class="metric-card"><span class="metric-label">Concluídas</span><strong id="metricConcluidas">0</strong><small class="metric-hint">Prontas para entrega</small></article>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <div><h2>Fila de produção</h2><p>Ficha para costureiras / tecelões — sem valores comerciais</p></div>
+              <div class="filter-group" id="statusFilter">
+                <button type="button" class="filter-btn active" data-status="todos">Todos</button>
+                <button type="button" class="filter-btn" data-status="aprovado">Aprovado</button>
+                <button type="button" class="filter-btn" data-status="recusado">Recusado</button>
+                <button type="button" class="filter-btn" data-status="em-producao">Em produção</button>
+                <button type="button" class="filter-btn" data-status="concluida">Concluída</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>CLIENTE</th><th>MODELO</th><th>COR</th><th>OBSERVAÇÕES</th><th>QTD</th><th>STATUS</th><th>AÇÕES</th></tr></thead>
+                <tbody id="productionBody"></tbody>
+              </table>
+              <p class="empty-state" id="productionEmptyState">Nenhuma ordem de produção no momento.</p>
+            </div>
+          </section>
+        </section>
+        <!-- ABA 3 - ESTOQUE DE INSUMOS -->
+        <section class="tab-panel" id="tab-estoque" hidden>
+          <section class="welcome-row">
+            <div><p class="eyebrow">CONTROLE DE INSUMOS</p><h1>📦 Estoque de Insumos <span>✦</span></h1><p class="subtitle">Cadastro e controle de quilos de fios, linhas e botões disponíveis.</p></div>
+          </section>
+
+          <section class="panel entry-panel">
+            <div class="panel-header"><div><h2>Novo insumo / Reposição</h2><p>Cadastre fios, linhas e botões do estoque</p></div><span class="form-status" id="stockFormStatus" role="status"></span></div>
+            <form id="stockForm" class="entry-form stock-form">
+              <label>Tipo<select id="tipoInsumo" name="tipoInsumo" required>
+                <option value="Fio">Fio</option>
+                <option value="Linha">Linha</option>
+                <option value="Botão">Botão</option>
+              </select></label>
+              <label>Nome / Cor<input id="nomeInsumo" name="nomeInsumo" type="text" placeholder="Ex: Fio de algodão cru" required maxlength="60"></label>
+              <label>Quantidade<input id="quantidadeInsumo" name="quantidadeInsumo" type="number" min="0" step="0.01" placeholder="0" required></label>
+              <label>Unidade<select id="unidadeInsumo" name="unidadeInsumo" required>
+                <option value="kg">kg</option>
+                <option value="m">m</option>
+                <option value="un">un</option>
+              </select></label>
+              <label>Estoque mínimo<input id="minimoInsumo" name="minimoInsumo" type="number" min="0" step="0.01" placeholder="0" required></label>
+              <button type="submit" class="primary-button">Adicionar ao estoque</button>
+            </form>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header"><div><h2>Insumos cadastrados</h2><p>Ajuste rápido de entrada e saída</p></div><span class="entry-count" id="stockCount">0 itens</span></div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>TIPO</th><th>NOME / COR</th><th>QUANTIDADE</th><th>MÍNIMO</th><th>STATUS</th><th>AJUSTAR</th><th></th></tr></thead>
+                <tbody id="stockBody"></tbody>
+              </table>
+              <p class="empty-state" id="stockEmptyState">Nenhum insumo cadastrado ainda.</p>
+            </div>
+          </section>
+        </section>
+        <!-- ABA 4 - RELATÓRIOS -->
+        <section class="tab-panel" id="tab-relatorios" hidden>
+          <section class="welcome-row">
+            <div>
+              <p class="eyebrow">DASHBOARD &amp; INDICADORES</p>
+              <h1>📊 Relatórios do Ateliê <span>✦</span></h1>
+              <p class="subtitle">Estatísticas gerais de faturamento, capacidade de produção e alertas de reposição.</p>
+            </div>
+          </section>
+
+          <section class="metric-grid">
+            <article class="metric-card" id="repFinancialCard">
+              <span class="metric-label">Faturamento Geral</span>
+              <strong id="repFaturamento">R$ 0,00</strong>
+              <small class="metric-hint">Soma total de todas as vendas</small>
+            </article>
+            <article class="metric-card">
+              <span class="metric-label">Total de Peças na Fila</span>
+              <strong id="repPecasFila">0</strong>
+              <small class="metric-hint">Soma de peças pendentes e em produção</small>
+            </article>
+            <article class="metric-card">
+              <span class="metric-label">Peças Concluídas</span>
+              <strong id="repPecasConcluidas">0</strong>
+              <small class="metric-hint">Confecção concluída com sucesso</small>
+            </article>
+          </section>
+
+          <div class="dashboard-charts-grid">
+            <!-- Progresso de Produção (CSS Progress Bars) -->
+            <section class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>Distribuição da Produção</h2>
+                  <p>Progresso das ordens de fabricação por status.</p>
+                </div>
+              </div>
+              <div class="charts-container">
+                <div class="progress-bar-group">
+                  <div class="progress-info">
+                    <span>Aprovados</span>
+                    <strong id="pctPendenteVal">0% (0 peças)</strong>
+                  </div>
+                  <div class="progress-track">
+                    <div class="progress-fill bg-pending" id="pctPendenteBar" style="width: 0%"></div>
+                  </div>
+                </div>
+
+                <div class="progress-bar-group">
+                  <div class="progress-info">
+                    <span>Em Produção</span>
+                    <strong id="pctProducaoVal">0% (0 peças)</strong>
+                  </div>
+                  <div class="progress-track">
+                    <div class="progress-fill bg-progress" id="pctProducaoBar" style="width: 0%"></div>
+                  </div>
+                </div>
+
+                <div class="progress-bar-group">
+                  <div class="progress-info">
+                    <span>Concluídas</span>
+                    <strong id="pctConcluidoVal">0% (0 peças)</strong>
+                  </div>
+                  <div class="progress-track">
+                    <div class="progress-fill bg-completed" id="pctConcluidoBar" style="width: 0%"></div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Alertas de Estoque Baixo -->
+            <section class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>⚠️ Alertas de Reposição</h2>
+                  <p>Insumos que estão abaixo ou no limite do estoque mínimo.</p>
+                </div>
+              </div>
+              <div class="alerts-list-container">
+                <div id="alertsStockList" class="alerts-stock-list">
+                  <!-- Gerado via script.js -->
+                </div>
+                <p class="empty-state text-success" id="alertsStockEmpty">✅ Excelente! Todos os insumos estão acima do estoque mínimo.</p>
+              </div>
+            </section>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
+
+
