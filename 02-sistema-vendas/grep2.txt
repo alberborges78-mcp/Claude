@@ -1,0 +1,3 @@
+
+index.html:204:              <div><h2>Fila de produção</h2><p>Ficha para costureiras / tecelões — sem valores comerciais</p></div>
+

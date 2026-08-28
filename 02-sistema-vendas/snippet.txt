@@ -1,0 +1,56 @@
+.grade-table{width:100%;border-collapse:collapse;margin:8px 0 6px;}");
+  d.write(".grade-table th{background:#f1f5f9;padding:8px 12px;text-align:left;font-size:12px;text-transform:uppercase;color:#475569;border:1px solid #cbd5e1;}");
+  d.write(".grade-table td{padding:8px 12px;border:1px solid #cbd5e1;font-size:16px;page-break-inside:avoid;}");
+  d.write(".grade-table td.qtd{font-weight:700;text-align:center;font-size:18px;}");
+  d.write(".grade-title{font-size:13px;text-transform:uppercase;color:#475569;font-weight:700;margin-top:10px;margin-bottom:2px;}");
+  d.write(".content-row{display:flex;gap:20px;align-items:flex-start;page-break-inside:avoid;page-break-after:avoid;max-height:100vh;overflow:hidden;}");
+  d.write(".content-row .col-dados{flex:1;min-width:0;}");
+  d.write(".content-row .col-foto{flex-shrink:0;width:280px;}");
+  d.write(".obs-box{margin-top:10px;padding:12px;background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;overflow:hidden;}");
+  d.write(".obs-box strong{font-size:11px;text-transform:uppercase;color:#475569;}");
+  d.write(".obs-box p{margin-top:4px;font-size:14px;color:#000;}");
+  d.write(".assinatura{text-align:center;margin-top:20px;padding-top:14px;border-top:2px solid #000;font-size:11px;color:#000;}");
+  d.write("@media print{");
+  d.write("@page{size:A4;margin:10mm;}");
+  d.write("body{padding:0;color:#000!important;background:#fff!important;}");
+  d.write(".no-print{display:none!important;}");
+  d.write(".content-row{max-height:100%;overflow:hidden;page-break-inside:avoid;}");
+  d.write(".info-item .value{color:#000!important;}");
+  d.write(".obs-box p{color:#000!important;}");
+  d.write(".grade-table td{color:#000!important;}");
+  d.write(".grade-table td.qtd{color:#000!important;}");
+  d.write(".header h1{color:#0d9488!important;}");
+  d.write(".header .sub{color:#64748b!important;}");
+  d.write(".obs-box{background:#f8fafc!important;border:1px solid #ccc!important;padding:8px!important;}");
+  d.write(".grade-table th{background:#f1f5f9!important;color:#475569!important;}");
+  d.write(".foto-wrapper img{border:1px solid #ccc!important;max-height:25vh!important;width:auto!important;object-fit:contain!important;display:block!important;margin:10px auto!important;}");
+  d.write(".assinatura,.assinatura .linha{color:#000!important;}");
+  d.write("}");
+  d.write("</style></head><body>");
+  d.write('<div class="no-print"><button class="btn-print" onclick="window.print()">🖨️ Imprimir</button><button class="btn-close" onclick="window.close()">✕ Fechar</button></div>');
+  d.write('<div class="header"><h1>🧵 FICHA DE PRODUÇÃO — MALHARIA</h1><p class="sub">Pedido #' + order.id + ' — Cadastrado em ' + order.data + ' — Entrega: ' + esc(dataEntrega) + '</p></div>');
+
+  // Dados gerais em grid
+  d.write('<div class="content-row"><div class="col-dados">');
+
+  // Dados gerais em grid
+  d.write('<div class="info-grid">');
+  d.write('<div class="info-item"><div class="label">Cliente</div><div class="value">' + esc(order.cliente) + "</div></div>");
+  d.write('<div class="info-item"><div class="label">Descrição do Material</div><div class="value">' + esc(modelo) + "</div></div>");
+  d.write('<div class="info-item"><div class="label">Cor da Malha</div><div class="value">' + esc(cor) + "</div></div>");
+  d.write('<div class="info-item"><div class="label">Telefone</div><div class="value">' + esc(order.telefone || "—") + "</div></div>");
+  d.write('<div class="info-item"><div class="label">Status</div><div class="value">' + (order.status === "pendente" ? "Aguardando Aprovacao" : order.status === "aprovado" ? "Aprovado" : order.status === "em-producao" ? "Em Producao" : order.status === "concluida" ? "Concluido" : order.status) + "</div></div>");
+  d.write("</div>");
+
+  // Grade de Tamanhos compacta
+  d.write('<div class="grade-title">📐 Grade de Tamanhos</div>');
+  d.write('<table class="grade-table"><thead><tr><th>Tamanho</th><th>Peças</th></tr></thead><tbody>' + gradeRows + "</tbody></table>");
+
+  // Observações
+  d.write(obsHtml);
+
+  d.write("</div><div class=\"col-foto\">" + fotoHtml + "</div></div>");
+
+  d.write('<div class="assinatura">_________________________________<br><strong>Assinatura do Cliente</strong><br><br>Ficha de Produção — Gestão da Malharia<br>Gerada em ' + new Date().toLocaleString("pt-BR") + "</div>");
+  d.write("</body></html>");
+  d.close();

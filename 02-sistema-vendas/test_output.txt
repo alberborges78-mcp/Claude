@@ -1,0 +1,5 @@
+imprimirFicha: executou sem throw
+--- HTML ESCRITO NA JANELA (imprimirFicha) ---
+5081 caracteres escritos
+ad><tr><th>Tamanho</th><th>Pecas</th></tr></thead><tbody><tr><td>P</td><td class="qtd">10</td></tr><tr><td>M</td><td class="qtd">20</td></tr><tr><td>G</td><td class="qtd">20</td></tr><tr><td>GG</td><td class="qtd">10</td></tr></tbody></table></div><div class="obs-box"><strong>­ƒôØ Observa├º├Áes T├®cnicas</strong><p>Estampa silk screen centralizada no peito, etiqueta na gola.</p></div><div class="rodape">Ficha de Producao ÔÇö Gestao da Malharia<br>Gerada em 27/08/2026, 23:21:31</div></div></body></html>
+ERRO imprimirViaCliente: w.imprimirViaCliente is not a function

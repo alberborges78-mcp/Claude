@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+c<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -18,10 +18,10 @@
 
       <nav class="main-nav" aria-label="Navegação principal">
         <p class="nav-label">Abas do módulo</p>
-        <a class="nav-item active" data-tab="vendas" href="#vendas"><span class="nav-icon">💰</span> Vendas e Clientes <span class="nav-tag" id="adminTag">Admin</span></a>
+        <a class="nav-item" data-tab="relatorios" href="#relatorios"><span class="nav-icon">📊</span> Painel Principal</a>
+        <a class="nav-item" data-tab="vendas" href="#vendas"><span class="nav-icon">💰</span> Vendas e Clientes <span class="nav-tag" id="adminTag">Admin</span></a>
         <a class="nav-item" data-tab="producao" href="#producao"><span class="nav-icon">📋</span> Ordens de Produção <span class="nav-badge" id="pendingBadge">0</span></a>
         <a class="nav-item" data-tab="estoque" href="#estoque"><span class="nav-icon">📦</span> Estoque de Insumos</a>
-        <a class="nav-item" data-tab="relatorios" href="#relatorios"><span class="nav-icon">📊</span> Relatórios Gerenciais</a>
       </nav>
 
       <div class="sidebar-bottom">
@@ -42,7 +42,7 @@
         <button class="mobile-menu" id="mobileMenu" aria-label="Abrir menu">☰</button>
         <div class="breadcrumb"><span>Vendas &amp; Faturamento</span><b>/</b><strong id="breadcrumbCurrent">Vendas e Clientes</strong></div>
         <div class="topbar-actions">
-          <button class="icon-button theme-button" id="themeButton" aria-label="Alternar modo escuro">◐</button>
+          <button class="icon-button theme-button" id="themeButton" aria-label="Alternar tema">🌙</button>
           <div class="top-avatar" id="topAvatar">AV</div>
         </div>
       </header>
@@ -50,7 +50,7 @@
       <div class="page-content">
 
         <!-- ABA 1 - VENDAS E CLIENTES -->
-        <section class="tab-panel" id="tab-vendas" data-role-restricted="admin">
+        <section class="tab-panel" id="tab-vendas" data-role-restricted="admin" hidden>
           <section class="welcome-row">
             <div><p class="eyebrow">SETOR COMERCIAL</p><h1>💰 Vendas e Clientes <span>✦</span></h1><p class="subtitle">Cadastre o cliente, o pedido da malha, o preço e acompanhe o valor total das vendas.</p></div>
             <div class="header-actions"><button class="primary-button" id="newSaleButton"><span>＋</span> Novo pedido de venda</button></div>
@@ -63,18 +63,116 @@
           </section>
 
           <section class="panel entry-panel" id="entry-form" aria-labelledby="entry-title">
-            <div class="panel-header"><div><h2 id="entry-title">Novo pedido de venda</h2><p>Ao salvar, o pedido aparece automaticamente como Ordem de Produção pendente.</p></div><span class="form-status" id="formStatus" role="status"></span></div>
+            <div class="panel-header">
+              <div>
+                <h2 id="entry-title">Novo pedido de venda</h2>
+                <p>Ao salvar, o pedido aparece automaticamente como Ordem de Produção pendente.</p>
+                <span class="editing-indicator" id="editingIndicator" hidden>✎ Editando Pedido #<span id="editingOrderNumber">1</span></span>
+              </div>
+              <span class="form-status" id="formStatus" role="status"></span>
+            </div>
             <form id="saleForm" class="entry-form sale-form">
+              <!-- DADOS GERAIS DO PEDIDO -->
               <label>Cliente<input id="cliente" name="cliente" type="text" placeholder="Nome do cliente" required maxlength="60"></label>
               <label>Telefone / Contato<input id="telefone" name="telefone" type="text" placeholder="(00) 00000-0000"></label>
-              <label>Modelo da malha<input id="modelo" name="modelo" type="text" placeholder="Ex: Blusa canelada" required maxlength="60"></label>
+              <label>Data de Entrega do Material<input type="date" id="dataEntrega" name="dataEntrega" required></label>
+
+              <div class="material-divider"><span>🧵 Materiais do Pedido</span><small>Preencha os dados abaixo e clique em "Adicionar Material" para incluir no carrinho.</small></div>
+
+              <!-- CAMPOS DO MATERIAL (são limpos após adicionar ao carrinho) -->
+              <label>Descrição do Material<input id="modelo" name="modelo" type="text" placeholder="Ex: Blusa canelada" required maxlength="60"></label>
               <label>Cor<input id="cor" name="cor" type="text" placeholder="Ex: Vinho" required maxlength="40"></label>
-              <label>Grade / Tamanhos<input id="grade" name="grade" type="text" placeholder="Ex: P:5, M:10, G:5" required maxlength="80"></label>
-              <label>Quantidade total (peças)<input id="quantidade" name="quantidade" type="number" min="1" step="1" placeholder="0" required></label>
+              <label>Grade / Tamanhos<input id="gradeTamanhos" name="gradeTamanhos" type="hidden"></label>
+              <div class="grade-container">
+                <div class="grade-header"><span>📐 Grade de Tamanhos</span><div class="grade-adder"><input type="text" id="novoTamanhoNome" placeholder="Ex: XGG, EG, 2..." maxlength="10"><button type="button" id="adicionarTamanhoBtn" class="grade-add-btn">+</button></div></div>
+                <div class="grade-inputs" id="gradeInputs">
+                  <div class="grade-item">
+                    <label class="grade-label">PP</label>
+                    <input type="number" class="grade-qty" data-tamanho="PP" min="0" step="1" value="" placeholder="0">
+                  </div>
+                  <div class="grade-item">
+                    <label class="grade-label">P</label>
+                    <input type="number" class="grade-qty" data-tamanho="P" min="0" step="1" value="" placeholder="0">
+                  </div>
+                  <div class="grade-item">
+                    <label class="grade-label">M</label>
+                    <input type="number" class="grade-qty" data-tamanho="M" min="0" step="1" value="" placeholder="0">
+                  </div>
+                  <div class="grade-item">
+                    <label class="grade-label">G</label>
+                    <input type="number" class="grade-qty" data-tamanho="G" min="0" step="1" value="" placeholder="0">
+                  </div>
+                  <div class="grade-item">
+                    <label class="grade-label">GG</label>
+                    <input type="number" class="grade-qty" data-tamanho="GG" min="0" step="1" value="" placeholder="0">
+                  </div>
+                  <div class="grade-item">
+                    <label class="grade-label">XG</label>
+                    <input type="number" class="grade-qty" data-tamanho="XG" min="0" step="1" value="" placeholder="0">
+                  </div>
+                  <div class="grade-item">
+                    <label class="grade-label">XXG</label>
+                    <input type="number" class="grade-qty" data-tamanho="XXG" min="0" step="1" value="" placeholder="0">
+                  </div>
+                  <div class="grade-item">
+                    <label class="grade-label">XXXG</label>
+                    <input type="number" class="grade-qty" data-tamanho="XXXG" min="0" step="1" value="" placeholder="0">
+                  </div>
+                </div>
+              </div>
+              <div class="total-qty-wrapper">
+                <label>Quantidade deste Material<strong id="quantidadeTotalDisplay">0</strong></label>
+                <input type="hidden" id="quantidade" name="quantidade" value="0">
+              </div>
               <label>Preço unitário (R$)<input id="precoUnitario" name="precoUnitario" type="number" min="0.01" step="0.01" placeholder="0,00" required></label>
+              <label class="file-label">Foto do Modelo/Peça
+                <span class="file-wrapper">
+                  <input type="file" id="fotoPeca" accept="image/*">
+                  <span class="file-fake">📷 Clique para selecionar</span>
+                </span>
+              </label>
+              <div id="preview-container">
+                <img id="thumbnail-preview" src="" alt="Preview da Peça">
+              </div>
+
+              <button type="button" class="secondary-button" id="btn-adicionar-item"><span>＋</span> Adicionar Material ao Pedido</button>
+
+              <!-- TABELA TEMPORÁRIA DE ITENS DO CARRINHO -->
+              <div class="cart-items-wrapper" id="cartItemsWrapper" hidden>
+                <div class="cart-header"><h3>📦 Materiais adicionados</h3><span id="cartCount">0 itens</span></div>
+                <div class="table-wrap">
+                  <table class="cart-table" id="cartTable">
+                    <thead><tr><th>DESCRIÇÃO</th><th>COR</th><th>GRADE</th><th>QTD</th><th>PREÇO UNIT.</th><th>SUBTOTAL</th><th>FOTO</th><th></th></tr></thead>
+                    <tbody id="cartBody"></tbody>
+                  </table>
+                </div>
+                <p class="cart-empty" id="cartEmptyState">Nenhum material adicionado ainda.</p>
+              </div>
+
+              <!-- Campos financeiros agrupados -->
+              <div class="financial-fields">
+                <label>Desconto (R$)<input id="descontoReais" name="descontoReais" type="number" min="0" step="0.01" placeholder="0,00"></label>
+                <label>Desconto (%)<input id="descontoPercent" name="descontoPercent" type="number" min="0" max="100" step="0.01" placeholder="0"></label>
+                <label>Valor da Entrada (R$)<input id="valorEntrada" name="valorEntrada" type="number" min="0" step="0.01" placeholder="0,00"></label>
+                <label>Forma de Pagamento<select id="formaPagamento" name="formaPagamento">
+                  <option value="pix">PIX</option>
+                  <option value="avista">À Vista</option>
+                  <option value="debito-credito">Débito/Crédito</option>
+                  <option value="faturado">Faturado 15/30 dias</option>
+                </select></label>
+              </div>
               <label>Observações<input id="observacoes" name="observacoes" type="text" placeholder="Ex: Sem etiquetas, linha vermelha" maxlength="150"></label>
               <label>Valor total (R$)<input id="valorTotalPreview" type="text" value="R$ 0,00" readonly></label>
-              <button type="submit" class="primary-button">Registrar venda</button>
+              <!-- Resumo financeiro em tempo real -->
+              <div class="calc-summary">
+                <div class="calc-item"><span class="calc-label">Subtotal (itens)</span><strong class="calc-value" id="calcSubtotal">R$ 0,00</strong></div>
+                <div class="calc-item"><span class="calc-label">Desconto</span><strong class="calc-value" id="calcDesconto">R$ 0,00</strong></div>
+                <div class="calc-item highlight"><span class="calc-label">Total Final</span><strong class="calc-value" id="calcTotalFinal">R$ 0,00</strong></div>
+                <div class="calc-item"><span class="calc-label">Entrada</span><strong class="calc-value" id="calcEntrada">R$ 0,00</strong></div>
+                <div class="calc-item"><span class="calc-label">Faltante</span><strong class="calc-value" id="calcFaltante">R$ 0,00</strong></div>
+                <div class="calc-item"><span class="calc-label">Status</span><strong class="calc-value" id="calcStatus">—</strong></div>
+              </div>
+              <button type="button" class="primary-button" id="btn-finalizar-venda"><span id="btnFinalizarLabel">✓ Finalizar e Salvar Venda</span></button>
             </form>
           </section>
 
@@ -82,7 +180,7 @@
             <div class="panel-header"><div><h2>Histórico de vendas</h2><p>Somente a administração visualiza preços e valores</p></div><span class="entry-count" id="salesCount">0 vendas</span></div>
             <div class="table-wrap">
               <table>
-                <thead><tr><th>CLIENTE</th><th>MODELO</th><th>COR</th><th>GRADE</th><th>QTD</th><th>PREÇO UNIT.</th><th class="align-right">VALOR TOTAL</th><th>STATUS</th><th></th></tr></thead>
+                <thead><tr><th>CLIENTE</th><th>DESCRIÇÃO</th><th>COR</th><th>GRADE</th><th>QTD</th><th>PREÇO UNIT.</th><th>DESCONTO</th><th class="align-right">VALOR FINAL</th><th>FORMA PAG.</th><th>FALTANTE</th><th>VISUAL</th><th>STATUS</th><th></th></tr></thead>
                 <tbody id="salesBody"></tbody>
               </table>
               <p class="empty-state" id="salesEmptyState">Nenhuma venda registrada ainda. Adicione o primeiro pedido acima.</p>
@@ -114,7 +212,7 @@
             </div>
             <div class="table-wrap">
               <table>
-                <thead><tr><th>CLIENTE</th><th>MODELO</th><th>COR</th><th>OBSERVAÇÕES</th><th>QTD</th><th>STATUS</th><th>AÇÕES</th></tr></thead>
+                <thead><tr><th>CLIENTE</th><th>DESCRIÇÃO</th><th>COR</th><th>OBSERVAÇÕES</th><th>QTD</th><th>STATUS</th><th>AÇÕES</th></tr></thead>
                 <tbody id="productionBody"></tbody>
               </table>
               <p class="empty-state" id="productionEmptyState">Nenhuma ordem de produção no momento.</p>
@@ -159,30 +257,75 @@
           </section>
         </section>
         <!-- ABA 4 - RELATÓRIOS -->
-        <section class="tab-panel" id="tab-relatorios" hidden>
+        <section class="tab-panel" id="tab-relatorios">
           <section class="welcome-row">
             <div>
-              <p class="eyebrow">DASHBOARD &amp; INDICADORES</p>
-              <h1>📊 Relatórios do Ateliê <span>✦</span></h1>
-              <p class="subtitle">Estatísticas gerais de faturamento, capacidade de produção e alertas de reposição.</p>
+              <p class="eyebrow">PAINEL PRINCIPAL</p>
+              <h1>📊 Dashboard do Ateliê <span>✦</span></h1>
+              <p class="subtitle">Indicadores gerais de faturamento, produção e evolução diária das vendas.</p>
             </div>
           </section>
 
-          <section class="metric-grid">
-            <article class="metric-card" id="repFinancialCard">
-              <span class="metric-label">Faturamento Geral</span>
-              <strong id="repFaturamento">R$ 0,00</strong>
-              <small class="metric-hint">Soma total de todas as vendas</small>
+          <!-- Cards destacados - Produção -->
+          <section class="dashboard-highlight-cards">
+            <article class="highlight-card" id="cardAguardando">
+              <span class="highlight-icon">🕒</span>
+              <div class="highlight-body">
+                <span class="highlight-label">Aguardando Aprovação</span>
+                <strong class="highlight-number" id="dashAguardando">0</strong>
+                <small class="highlight-hint">Peças de pedidos pendentes</small>
+              </div>
             </article>
-            <article class="metric-card">
-              <span class="metric-label">Total de Peças na Fila</span>
-              <strong id="repPecasFila">0</strong>
-              <small class="metric-hint">Soma de peças pendentes e em produção</small>
+            <article class="highlight-card" id="cardAprovados">
+              <span class="highlight-icon">✅</span>
+              <div class="highlight-body">
+                <span class="highlight-label">Aprovados</span>
+                <strong class="highlight-number" id="dashAprovados">0</strong>
+                <small class="highlight-hint">Peças de pedidos aprovados</small>
+              </div>
             </article>
-            <article class="metric-card">
-              <span class="metric-label">Peças Concluídas</span>
-              <strong id="repPecasConcluidas">0</strong>
-              <small class="metric-hint">Confecção concluída com sucesso</small>
+            <article class="highlight-card" id="cardEmProducao">
+              <span class="highlight-icon">🧵</span>
+              <div class="highlight-body">
+                <span class="highlight-label">Em Produção</span>
+                <strong class="highlight-number" id="dashEmProducao">0</strong>
+                <small class="highlight-hint">Peças em fabricação no momento</small>
+              </div>
+            </article>
+            <article class="highlight-card" id="cardConcluidos">
+              <span class="highlight-icon">✅</span>
+              <div class="highlight-body">
+                <span class="highlight-label">Pedidos Concluídos</span>
+                <strong class="highlight-number" id="dashConcluidos">0</strong>
+                <small class="highlight-hint">Peças de pedidos finalizados</small>
+              </div>
+            </article>
+          </section>
+
+          <!-- Gráfico de Faturamento Diário -->
+          <section class="panel chart-panel">
+            <div class="panel-header">
+              <div>
+                <h2>📈 Faturamento Diário do Mês</h2>
+                <p>Evolução do valor faturado por dia no período atual.</p>
+              </div>
+              <span class="entry-count" id="dailyRevenueMonthLabel">Mês atual</span>
+            </div>
+            <div class="chart-canvas-wrapper">
+              <canvas id="graficoFaturamentoDiario"></canvas>
+            </div>
+            <p class="empty-state" id="dailyRevenueEmpty" hidden>Nenhuma venda registrada neste mês.</p>
+          </section>
+
+          <!-- Card de Faturamento Total abaixo do gráfico -->
+          <section class="dashboard-highlight-cards single-card">
+            <article class="highlight-card" id="cardFaturamento">
+              <span class="highlight-icon">💰</span>
+              <div class="highlight-body">
+                <span class="highlight-label">Faturamento Total</span>
+                <strong class="highlight-number" id="dashFaturamentoTotal">R$ 0,00</strong>
+                <small class="highlight-hint">Soma de todas as vendas registradas</small>
+              </div>
             </article>
           </section>
 
@@ -250,6 +393,7 @@
     </main>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
