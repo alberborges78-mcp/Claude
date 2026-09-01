@@ -1,0 +1,281 @@
+1460 d=0 |   setTimeout(function () { if (!pw.closed) pw.close(); }, 60000);
+1461 d=0 | 
+1462 d=0 |   return pw;
+1463 d=-1 | }
+1464 d=-1 | 
+1465 d=0 | function imprimirFicha(orderId) {
+1466 d=0 |   var order = null;
+1467 d=1 |   for (var i = 0; i < orders.length; i++) {
+1468 d=1 |     if (orders[i].id === orderId) { order = orders[i]; break; }
+1469 d=0 |   }
+1470 d=0 |   if (!order) return;
+1471 d=0 | 
+1472 d=0 |   var materiais = (order.materiais && order.materiais.length > 0) ? order.materiais : null;
+1473 d=0 | 
+1474 d=1 |   if (!materiais) {
+1475 d=2 |     materiais = [{
+1476 d=2 |       modelo: order.modelo || "—",
+1477 d=2 |       cor: order.cor || "—",
+1478 d=2 |       grade: order.grade || {},
+1479 d=2 |       fotoBase64: order.fotoBase64 || "",
+1480 d=2 |       quantidade: order.quantidade || 0,
+1481 d=2 |       precoUnitario: order.precoUnitario || 0
+1482 d=1 |     }];
+1483 d=0 |   }
+1484 d=0 | 
+1485 d=1 |   function buildGradeRows(gradeObj) {
+1486 d=1 |     var rows = "";
+1487 d=2 |     if (typeof gradeObj === "object" && gradeObj !== null) {
+1488 d=2 |       var chaves = Object.keys(gradeObj);
+1489 d=3 |       if (chaves.length > 0) {
+1490 d=4 |         for (var gk = 0; gk < chaves.length; gk++) {
+1491 d=4 |           var tam = chaves[gk];
+1492 d=4 |           var qtd = gradeObj[tam];
+1493 d=5 |           if (qtd > 0) {
+1494 d=5 |             rows += "<tr><td>" + esc(tam) + "</td><td class=\"qtd\">" + qtd + "</td></tr>";
+1495 d=4 |           }
+1496 d=3 |         }
+1497 d=3 |       } else {
+1498 d=3 |         rows = "<tr><td colspan=\"2\">Nenhum cadastrado</td></tr>";
+1499 d=2 |       }
+1500 d=2 |     } else {
+1501 d=2 |       var grades = String(gradeObj).split(",");
+1502 d=3 |       for (var g = 0; g < grades.length; g++) {
+1503 d=3 |         var parts = grades[g].trim().split(":");
+1504 d=3 |         rows += "<tr><td>" + esc(parts[0] || "—") + "</td><td class=\"qtd\">" + (parts[1] || "0") + "</td></tr>";
+1505 d=2 |       }
+1506 d=1 |     }
+1507 d=1 |     return rows;
+1508 d=0 |   }
+1509 d=0 | 
+1510 d=1 |   function buildFotoHtml(fotoBase64) {
+1511 d=2 |     if (fotoBase64 && fotoBase64.length > 50) {
+1512 d=2 |       return '<div class="container-foto"><img src="' + fotoBase64 + '" alt="Foto da peça"></div>';
+1513 d=1 |     }
+1514 d=1 |     return '<div class="container-foto vazio"><span>📷 Sem foto anexada</span></div>';
+1515 d=0 |   }
+1516 d=0 | 
+1517 d=0 |   var obsHtml = "";
+1518 d=1 |   if (order.observacoes) {
+1519 d=1 |     obsHtml = '<div class="obs-box"><strong>📝 Observações Técnicas</strong><p>' + esc(order.observacoes) + "</p></div>";
+1520 d=0 |   }
+1521 d=0 | 
+1522 d=0 |   var dataEntrega = order.dataEntrega || "—";
+1523 d=1 |   if (dataEntrega !== "—") {
+1524 d=1 |     var partes = dataEntrega.split("-");
+1525 d=1 |     if (partes.length === 3) dataEntrega = partes[2] + "/" + partes[1] + "/" + partes[0];
+1526 d=0 |   }
+1527 d=0 | var d = pw.document;
+1528 d=0 |   d.write("<!DOCTYPE html><html lang=\"pt-BR\"><head><meta charset=\"UTF-8\">");
+1529 d=0 |   d.write("<title>Ficha - " + esc(order.cliente) + "</title><style>");
+1530 d=0 |   d.write("@page{size:A4;margin:15mm;}");
+1531 d=0 |   d.write("*{margin:0;padding:0;box-sizing:border-box;}");
+1532 d=0 |   d.write("body{font-family:Arial,Helvetica,sans-serif;font-size:14px;padding:0;color:#000;background:#fff;}");
+1533 d=0 |   d.write(".no-print{text-align:right;margin-bottom:8px;}");
+1534 d=0 |   d.write(".no-print button{padding:8px 20px;border:none;border-radius:6px;cursor:pointer;font-size:13px;margin-left:8px;}");
+1535 d=0 |   d.write(".btn-print{background:#0d9488;color:#fff;}");
+1536 d=0 |   d.write(".btn-close{background:#e2e8f0;color:#1e293b;}");
+1537 d=0 |   d.write(".ficha-container{display:flex;flex-direction:column;height:100vh;justify-content:space-between;page-break-inside:avoid;}");
+1538 d=0 |   d.write(".header{text-align:center;border-bottom:3px solid #0d9488;padding-bottom:10px;margin-bottom:10px;}");
+1539 d=0 |   d.write(".header h1{font-size:20px;color:#0d9488;letter-spacing:1px;text-transform:uppercase;}");
+1540 d=0 |   d.write(".header .sub{font-size:11px;color:#64748b;margin-top:2px;}");
+1541 d=0 |   d.write(".info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;margin-bottom:6px;}");
+1542 d=0 |   d.write(".info-item{padding:4px 0;border-bottom:1px solid #e2e8f0;}");
+1543 d=0 |   d.write(".info-item .label{font-size:10px;text-transform:uppercase;color:#64748b;font-weight:700;letter-spacing:0.5px;}");
+1544 d=0 |   d.write(".info-item .value{font-size:15px;font-weight:700;margin-top:1px;color:#000;}");
+1545 d=0 |   d.write(".container-foto{width:100%;display:flex;justify-content:center;align-items:center;overflow:hidden;border:1px solid #e2e8f0;border-radius:6px;background:#fafafa;margin:12px 0;padding:12px;}");
+1546 d=0 |   d.write(".container-foto img{max-width:100%;height:auto;object-fit:contain;display:block;margin:0 auto;}");
+1547 d=0 |   d.write(".container-foto.vazio{padding:20px;font-size:13px;color:#94a3b8;border:2px dashed #e2e8f0;}");
+1548 d=0 |   d.write(".material-block{page-break-inside:avoid;break-inside:avoid;margin-bottom:16px;}");
+1549 d=0 | d.write(".grade-table{width:100%;border-collapse:collapse;margin:6px 0 4px;}");
+1550 d=0 |   d.write(".grade-table th{background:#f1f5f9;padding:6px 10px;text-align:left;font-size:11px;text-transform:uppercase;color:#475569;border:1px solid #cbd5e1;}");
+1551 d=0 |   d.write(".grade-table td{padding:6px 10px;border:1px solid #cbd5e1;font-size:14px;page-break-inside:avoid;}");
+1552 d=0 |   d.write(".grade-table td.qtd{font-weight:700;text-align:center;font-size:16px;}");
+1553 d=0 |   d.write(".grade-title{font-size:12px;text-transform:uppercase;color:#475569;font-weight:700;margin-top:6px;margin-bottom:2px;}");
+1554 d=0 |   d.write(".grade-table th{background:#f1f5f9;padding:6px 10px;text-align:left;font-size:11px;text-transform:uppercase;color:#475569;border:1px solid #cbd5e1;}");
+1555 d=0 |   d.write(".grade-table td{padding:6px 10px;border:1px solid #cbd5e1;font-size:14px;page-break-inside:avoid;}");
+1556 d=0 |   d.write(".material-divider{border-top:2px dashed #cbd5e1;margin:16px 0;page-break-after:always;}");
+1557 d=0 |   d.write(".grade-title{font-size:12px;text-transform:uppercase;color:#475569;font-weight:700;margin-top:6px;margin-bottom:2px;}");
+1558 d=0 |   d.write(".obs-box{margin-top:6px;padding:8px;background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;overflow:hidden;}");
+1559 d=0 |   d.write(".obs-box strong{font-size:11px;text-transform:uppercase;color:#475569;}");
+1560 d=0 |   d.write(".obs-box p{margin-top:2px;font-size:13px;color:#000;}");
+1561 d=1 |   d.write("@media print{");
+1562 d=1 |   d.write("body{color:#000!important;background:#fff!important;}");
+1563 d=1 |   d.write(".no-print{display:none!important;}");
+1564 d=1 |   d.write(".ficha-container{height:auto;min-height:100vh;}");
+1565 d=1 |   d.write(".material-block{page-break-inside:avoid!important;break-inside:avoid!important;}");
+1566 d=1 |   d.write(".material-divider{page-break-after:always!important;}");
+1567 d=1 |   d.write(".container-foto img{max-height:180px!important;max-width:100%!important;height:auto!important;object-fit:contain!important;}");
+1568 d=1 |   d.write(".info-item .value{color:#000!important;}");
+1569 d=1 |   d.write(".grade-table td{color:#000!important;}");
+1570 d=1 |   d.write(".header h1{color:#0d9488!important;}");
+1571 d=1 |   d.write(".obs-box p{color:#000!important;}");
+1572 d=0 |   d.write("}");
+1573 d=0 |   d.write("</style></head>" + "<body>");
+1574 d=0 |   d.write("<div class=\"no-print\"><button class=\"btn-print\" onclick=\"window.print()\">🖨️ Imprimir</button><button class=\"btn-close\" onclick=\"window.close()\">✕ Fechar</button></div>");
+1575 d=0 |   d.write("<div class=\"ficha-container\">");
+1576 d=0 |   d.write("<div class=\"header\"><h1>🧵 FICHA DE PRODUÇÃO — MALHARIA</h1><p class=\"sub\">Pedido #" + order.id + " — Cadastrado em " + order.data + " — Entrega: " + esc(dataEntrega) + "</p></div>");
+1577 d=0 |   d.write("<div class=\"info-grid\">");
+1578 d=0 |   d.write("<div class=\"info-item\"><div class=\"label\">Cliente</div><div class=\"value\">" + esc(order.cliente) + "</div></div>");
+1579 d=0 |   d.write("<div class=\"info-item\"><div class=\"label\">Telefone</div><div class=\"value\">" + esc(order.telefone || "—") + "</div></div>");
+1580 d=0 |   d.write("<div class=\"info-item\"><div class=\"label\">Status</div><div class=\"value\">" + (order.status === "pendente" ? "Aguardando Aprovacao" : order.status === "aprovado" ? "Aprovado" : order.status === "em-producao" ? "Em Producao" : order.status === "concluida" ? "Concluido" : order.status) + "</div></div>");
+1581 d=0 |   d.write("</div>");
+1582 d=1 |   for (var mi = 0; mi < materiais.length; mi++) {
+1583 d=1 |     var mat = materiais[mi];
+1584 d=1 |     if (mi > 0) { d.write("<div class=\"material-divider\"></div>"); }
+1585 d=1 |     d.write("<div class=\"material-block\">");
+1586 d=1 |     d.write("<div class=\"info-grid\" style=\"margin-bottom:4px;\">");
+1587 d=1 |     d.write("<div class=\"info-item\"><div class=\"label\">Descricao do Material</div><div class=\"value\">" + esc(mat.modelo || "—") + "</div></div>");
+1588 d=1 |     d.write("<div class=\"info-item\"><div class=\"label\">Cor da Malha</div><div class=\"value\">" + esc(mat.cor || "—") + "</div></div>");
+1589 d=1 |     d.write("</div>");
+1590 d=1 |     d.write(buildFotoHtml(mat.fotoBase64));
+1591 d=1 |     d.write("<div class=\"grade-title\">📐 Grade de Tamanhos</div>");
+1592 d=1 |     d.write("<table class=\"grade-table\"><thead><tr><th>Tamanho</th><th>Pecas</th></tr></thead><tbody>" + buildGradeRows(mat.grade) + "</tbody></table>");
+1593 d=1 |     d.write("</div>");
+1594 d=0 |   }
+1595 d=0 |   d.write(obsHtml);
+1596 d=0 |   d.write("<div class=\"rodape\">Ficha de Producao — Gestao da Malharia<br>Gerada em " + new Date().toLocaleString("pt-BR") + "</div>");
+1597 d=0 |   d.write("</div></body></html>");
+1598 d=0 |   d.close();
+1599 d=0 | 
+1600 d=1 |   var ficou = setInterval(function () {
+1601 d=1 |     if (pw.closed) { clearInterval(ficou); return; }
+1602 d=2 |     try {
+1603 d=2 |       pw.document.addEventListener("afterprint", function () { pw.close(); });
+1604 d=2 |       setTimeout(function () { if (!pw.closed) pw.close(); }, 30000);
+1605 d=2 | // ============================================================
+1606 d=2 | // VIA DO CLIENTE
+1607 d=2 | // ============================================================
+1608 d=3 | function imprimirViaCliente(orderId) {
+1609 d=3 |   var order = null;
+1610 d=4 |   for (var i = 0; i < orders.length; i++) {
+1611 d=4 |     if (orders[i].id === orderId) { order = orders[i]; break; }
+1612 d=3 |   }
+1613 d=3 |   if (!order) return;
+1614 d=3 | 
+1615 d=3 |   var pw = window.open("", "_blank", "width=800,height=600");
+1616 d=3 |   if (!pw) { alert("Permita pop-ups para imprimir a via."); return; }
+1617 d=3 | 
+1618 d=3 |   var primeiro = (order.materiais && order.materiais.length > 0) ? order.materiais[0] : null;
+1619 d=3 |   var modelo = primeiro ? primeiro.modelo : (order.modelo || "—");
+1620 d=3 |   var cor = primeiro ? primeiro.cor : (order.cor || "—");
+1621 d=3 |   var foto = primeiro ? (primeiro.fotoBase64 || "") : (order.fotoBase64 || "");
+1622 d=3 |   var preco = primeiro ? primeiro.precoUnitario : (order.precoUnitario || 0);
+1623 d=3 | 
+1624 d=3 |   var gradeObj = primeiro ? primeiro.grade : (order.grade || {});
+1625 d=3 |   var gradeRows = "";
+1626 d=4 |   if (typeof gradeObj === "object" && gradeObj !== null) {
+1627 d=4 |     var chaves = Object.keys(gradeObj);
+1628 d=5 |     if (chaves.length > 0) {
+1629 d=6 |       for (var gk = 0; gk < chaves.length; gk++) {
+1630 d=6 |         var tam = chaves[gk];
+1631 d=6 |         var qtd = gradeObj[tam];
+1632 d=6 |         if (qtd > 0) gradeRows += "<tr><td>" + esc(tam) + "</td><td class=\"qtd\">" + qtd + "</td></tr>";
+1633 d=5 |       }
+1634 d=4 |     }
+1635 d=4 |   } else {
+1636 d=4 |     var grades = String(gradeObj).split(",");
+1637 d=4 | var d = pw.document;
+1638 d=4 |   d.write("<!DOCTYPE html><html lang=\"pt-BR\"><head><meta charset=\"UTF-8\">");
+1639 d=4 |   d.write("<title>Via do Cliente - " + esc(order.cliente) + "</title><style>");
+1640 d=4 |   d.write("*{margin:0;padding:0;box-sizing:border-box;}");
+1641 d=4 |   d.write("body{font-family:Arial,Helvetica,sans-serif;font-size:14px;padding:32px;color:#000;background:#fff;}");
+1642 d=4 |   d.write(".no-print{text-align:right;margin-bottom:16px;}");
+1643 d=4 |   d.write(".no-print button{padding:8px 20px;border:none;border-radius:6px;cursor:pointer;font-size:13px;margin-left:8px;}");
+1644 d=4 |   d.write(".btn-print{background:#0d9488;color:#fff;}");
+1645 d=4 |   d.write(".btn-close{background:#e2e8f0;color:#1e293b;}");
+1646 d=4 |   d.write(".header{text-align:center;border-bottom:3px solid #0d9488;padding-bottom:14px;margin-bottom:20px;}");
+1647 d=4 |   d.write(".header h1{font-size:22px;color:#0d9488;letter-spacing:1px;text-transform:uppercase;}");
+1648 d=4 |   d.write(".header .sub{font-size:12px;color:#64748b;margin-top:4px;}");
+1649 d=4 |   d.write(".info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 20px;margin-bottom:8px;}");
+1650 d=4 |   d.write(".info-item{padding:6px 0;border-bottom:1px solid #e2e8f0;}");
+1651 d=4 |   d.write(".info-item .label{font-size:10px;text-transform:uppercase;color:#64748b;font-weight:700;letter-spacing:0.5px;}");
+1652 d=4 |   d.write(".info-item .value{font-size:16px;font-weight:700;margin-top:1px;color:#000;}");
+1653 d=4 |   d.write(".foto-wrapper{text-align:center;margin:16px 0;padding:8px;}");
+1654 d=4 |   d.write(".foto-wrapper img{max-width:300px;height:auto;border-radius:4px;border:1px solid #e2e8f0;}");
+1655 d=4 |   d.write(".foto-wrapper.vazio{padding:30px;font-size:13px;color:#94a3b8;border:2px dashed #e2e8f0;}");
+1656 d=4 |   d.write(".grade-table{width:100%;border-collapse:collapse;margin:12px 0 8px;}");
+1657 d=4 |   d.write(".grade-table th{background:#f1f5f9;padding:10px 14px;text-align:left;font-size:12px;text-transform:uppercase;color:#475569;border:1px solid #cbd5e1;}");
+1658 d=4 |   d.write(".grade-table td{padding:10px 14px;border:1px solid #cbd5e1;font-size:16px;}");
+1659 d=4 |   d.write(".grade-table td.qtd{font-weight:700;text-align:center;font-size:18px;}");
+1660 d=4 |   d.write(".grade-title{font-size:14px;text-transform:uppercase;color:#475569;font-weight:700;margin-top:16px;margin-bottom:4px;}");
+1661 d=4 |   d.write(".fin-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #e2e8f0;font-size:15px;}");
+1662 d=4 |   d.write(".fin-row .fin-label{color:#64748b;}");
+1663 d=4 |   d.write(".fin-row .fin-value{font-weight:700;color:#000;}");
+1664 d=4 |   d.write(".fin-row.total{background:#f0fdfa;padding:14px 12px;border:2px solid #0d9488;border-radius:6px;margin-top:8px;}");
+1665 d=4 |   d.write(".fin-row.total .fin-value{font-size:20px;color:#0f766e;}");
+1666 d=4 |   d.write(".fin-section{background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:16px;margin:16px 0;}");
+1667 d=4 |   d.write(".fin-section h3{font-size:13px;text-transform:uppercase;color:#475569;margin-bottom:10px;}");
+1668 d=4 |   d.write(".obs-box{margin-top:16px;padding:16px;background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;}");
+1669 d=4 |   d.write(".obs-box strong{font-size:12px;text-transform:uppercase;color:#475569;}");
+1670 d=4 |   d.write(".obs-box p{margin-top:6px;font-size:15px;color:#000;}");
+1671 d=4 |   d.write(".assinatura{text-align:center;margin-top:32px;padding-top:20px;border-top:2px solid #000;font-size:11px;color:#000;}");
+1672 d=5 |   d.write("@media print{");
+1673 d=5 |   d.write("@page{margin:15mm;}");
+1674 d=5 |   d.write("body{padding:0;color:#000!important;background:#fff!important;}");
+1675 d=5 |   d.write(".no-print{display:none!important;}");
+1676 d=5 |   d.write(".fin-row .fin-value{color:#000!important;}");
+1677 d=5 |   d.write(".fin-row.total .fin-value{color:#0f766e!important;}");
+1678 d=5 |   d.write(".fin-row.total{background:#f0fdfa!important;border:2px solid #0d9488!important;}");
+1679 d=5 |   d.write(".header h1{color:#0d9488!important;}");
+1680 d=5 |   d.write(".info-item .value{color:#000!important;}");
+1681 d=5 |   d.write(".grade-table td{color:#000!important;}");
+1682 d=5 |   d.write(".obs-box p{color:#000!important;}");
+1683 d=5 |   d.write(".assinatura{color:#000!important;}");
+1684 d=4 |   d.write("}");
+1685 d=4 |   d.write("</style></head><body>");
+1686 d=4 | d.write('<div class="no-print"><button class="btn-print" onclick="window.print()">🖨️ Imprimir</button><button class="btn-close" onclick="window.close()">✕ Fechar</button></div>');
+1687 d=4 |   d.write('<div class="header"><h1>🧵 VIA DO CLIENTE — APROVAÇÃO COMERCIAL</h1><p class="sub">Pedido #' + order.id + ' — ' + order.data + ' — Entrega: ' + esc(dataEntrega) + '</p></div>');
+1688 d=4 |   d.write('<div class="info-grid">');
+1689 d=4 |   d.write('<div class="info-item"><div class="label">Cliente</div><div class="value">' + esc(order.cliente) + "</div></div>");
+1690 d=4 |   d.write('<div class="info-item"><div class="label">Telefone</div><div class="value">' + esc(order.telefone || "—") + "</div></div>");
+1691 d=4 |   d.write('<div class="info-item"><div class="label">Descrição do Material</div><div class="value">' + esc(modelo) + "</div></div>");
+1692 d=4 |   d.write('<div class="info-item"><div class="label">Cor</div><div class="value">' + esc(cor) + "</div></div>");
+1693 d=4 |   d.write("</div>");
+1694 d=4 |   d.write(fotoHtml);
+1695 d=4 |   d.write('<div class="grade-title">📐 Grade de Tamanhos</div>');
+1696 d=4 |   d.write('<table class="grade-table"><thead><tr><th>Tamanho</th><th>Peças</th></tr></thead><tbody>' + gradeRows + "</tbody></table>");
+1697 d=4 |   d.write('<div class="fin-section"><h3>💰 Resumo Financeiro</h3>');
+1698 d=4 |   d.write('<div class="fin-row"><span class="fin-label">Preço Unitário</span><span class="fin-value">R$ ' + preco.toFixed(2).replace(".", ",") + '</span></div>');
+1699 d=4 |   d.write('<div class="fin-row"><span class="fin-label">Subtotal (itens)</span><span class="fin-value">R$ ' + order.subtotal.toFixed(2).replace(".", ",") + '</span></div>');
+1700 d=4 |   if (order.descontoReais && order.descontoReais > 0) { d.write('<div class="fin-row"><span class="fin-label">Desconto</span><span class="fin-value">- R$ ' + order.descontoReais.toFixed(2).replace(".", ",") + '</span></div>'); }
+1701 d=4 |   if (order.descontoPercent && order.descontoPercent > 0) { d.write('<div class="fin-row"><span class="fin-label">Desconto (%)</span><span class="fin-value">' + order.descontoPercent + '%</span></div>'); }
+1702 d=4 |   d.write('<div class="fin-row total"><span class="fin-label">Valor Total Final</span><span class="fin-value">R$ ' + order.valorTotal.toFixed(2).replace(".", ",") + '</span></div>');
+1703 d=4 |   d.write('<div class="fin-row"><span class="fin-label">Valor da Entrada</span><span class="fin-value">R$ ' + (order.valorEntrada || 0).toFixed(2).replace(".", ",") + '</span></div>');
+1704 d=4 |   d.write('<div class="fin-row"><span class="fin-label">Forma de Pagamento</span><span class="fin-value">' + esc(fpLabel) + '</span></div>');
+1705 d=4 |   d.write('<div class="fin-row"><span class="fin-label">Valor Faltante</span><span class="fin-value">R$ ' + (order.valorFaltante || 0).toFixed(2).replace(".", ",") + '</span></div>');
+1706 d=4 |   d.write("</div>");
+1707 d=4 |   d.write(obsHtml);
+1708 d=4 |   d.write('<div class="assinatura">_________________________________<br><strong>Assinatura do Cliente</strong><br><br><em>Documento gerado em ' + new Date().toLocaleString("pt-BR") + '</em></div>');
+1709 d=4 |   d.write("</body></html>");
+1710 d=4 |   d.close();
+1711 d=4 | 
+1712 d=5 |   var ficou = setInterval(function () {
+1713 d=5 |     if (pw.closed) { clearInterval(ficou); return; }
+1714 d=5 |     try { pw.document.addEventListener("afterprint", function () { pw.close(); }); setTimeout(function () { if (!pw.closed) pw.close(); }, 30000); } catch (e) {}
+1715 d=4 |   }, 200);
+1716 d=3 | }
+1717 d=4 |     for (var g = 0; g < grades.length; g++) {
+1718 d=4 |       var parts = grades[g].trim().split(":");
+1719 d=4 |       gradeRows += "<tr><td>" + esc(parts[0] || "—") + "</td><td class=\"qtd\">" + (parts[1] || "0") + "</td></tr>";
+1720 d=3 |     }
+1721 d=2 |   }
+1722 d=2 | 
+1723 d=2 |   var obsHtml = "";
+1724 d=2 |   if (order.observacoes) { obsHtml = '<div class="obs-box"><strong>📝 Observações</strong><p>' + esc(order.observacoes) + "</p></div>"; }
+1725 d=2 | 
+1726 d=2 |   var fotoHtml = "";
+1727 d=2 |   if (foto && foto.length > 50) { fotoHtml = '<div class="foto-wrapper"><img src="' + foto + '" alt="Foto"></div>'; }
+1728 d=2 |   else { fotoHtml = '<div class="foto-wrapper vazio"><span>📷 Sem foto</span></div>'; }
+1729 d=2 | 
+1730 d=2 |   var dataEntrega = order.dataEntrega || "—";
+1731 d=2 |   if (dataEntrega !== "—") { var partes = dataEntrega.split("-"); if (partes.length === 3) dataEntrega = partes[2] + "/" + partes[1] + "/" + partes[0]; }
+1732 d=2 | 
+1733 d=2 |   var pagLabels = { "pix":"PIX","avista":"À Vista","debito-credito":"Débito/Crédito","faturado":"Faturado 15/30 dias" };
+1734 d=2 |   var fpLabel = pagLabels[order.formaPagamento] || order.formaPagamento || "—";
+1735 d=1 |     } catch (e) {}
+1736 d=0 |   }, 200);
+1737 d=-1 | }
+1738 d=0 | function deleteOrder(id) {
+1739 d=0 |   if (!confirm("Tem certeza que deseja excluir este pedido?")) return;
+1740 d=0 |   var t = [];

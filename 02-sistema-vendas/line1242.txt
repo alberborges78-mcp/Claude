@@ -1,0 +1,1 @@
+    html += '<button class="primary-button-sm" onclick="imprimirFicha(\'' + o.id + '\')">Imprimir Ficha</button>';

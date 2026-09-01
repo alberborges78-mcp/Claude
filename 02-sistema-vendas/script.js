@@ -1239,7 +1239,7 @@ function renderProductionTable() {
     html += "</select>";
     html += "</td>";
     html += '<td class="action-buttons">';
-    html += '<button class="primary-button-sm" onclick="imprimirFicha(' + o.id + ')">🖨️ Imprimir Ficha</button>';
+    html += `<button class="primary-button-sm" onclick="imprimirFicha('${o.id}')">Imprimir Ficha</button>`;
     html += '<button class="stock-adjust-btn" onclick="deleteOrder(' + o.id + ')" title="Excluir">✕</button>';
     html += "</td></tr>";
   }
@@ -1465,7 +1465,7 @@ function imprimirEmJanela(htmlCompleto, mensagemSemPopup) {
 function imprimirFicha(orderId) {
   var order = null;
   for (var i = 0; i < orders.length; i++) {
-    if (orders[i].id === orderId) { order = orders[i]; break; }
+    if (String(orders[i].id) === String(orderId)) { order = orders[i]; break; }
   }
   if (!order) return;
 
@@ -1524,155 +1524,210 @@ function imprimirFicha(orderId) {
     var partes = dataEntrega.split("-");
     if (partes.length === 3) dataEntrega = partes[2] + "/" + partes[1] + "/" + partes[0];
   }
-var d = pw.document;
-  d.write("<!DOCTYPE html><html lang=\"pt-BR\"><head><meta charset=\"UTF-8\">");
-  d.write("<title>Ficha - " + esc(order.cliente) + "</title><style>");
-  d.write("@page{size:A4;margin:15mm;}");
-  d.write("*{margin:0;padding:0;box-sizing:border-box;}");
-  d.write("body{font-family:Arial,Helvetica,sans-serif;font-size:14px;padding:0;color:#000;background:#fff;}");
-  d.write(".no-print{text-align:right;margin-bottom:8px;}");
-  d.write(".no-print button{padding:8px 20px;border:none;border-radius:6px;cursor:pointer;font-size:13px;margin-left:8px;}");
-  d.write(".btn-print{background:#0d9488;color:#fff;}");
-  d.write(".btn-close{background:#e2e8f0;color:#1e293b;}");
-  d.write(".ficha-container{display:flex;flex-direction:column;height:100vh;justify-content:space-between;page-break-inside:avoid;}");
-  d.write(".header{text-align:center;border-bottom:3px solid #0d9488;padding-bottom:10px;margin-bottom:10px;}");
-  d.write(".header h1{font-size:20px;color:#0d9488;letter-spacing:1px;text-transform:uppercase;}");
-  d.write(".header .sub{font-size:11px;color:#64748b;margin-top:2px;}");
-  d.write(".info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;margin-bottom:6px;}");
-  d.write(".info-item{padding:4px 0;border-bottom:1px solid #e2e8f0;}");
-  d.write(".info-item .label{font-size:10px;text-transform:uppercase;color:#64748b;font-weight:700;letter-spacing:0.5px;}");
-  d.write(".info-item .value{font-size:15px;font-weight:700;margin-top:1px;color:#000;}");
-  d.write(".container-foto{width:100%;display:flex;justify-content:center;align-items:center;overflow:hidden;border:1px solid #e2e8f0;border-radius:6px;background:#fafafa;margin:12px 0;padding:12px;}");
-  d.write(".container-foto img{max-width:100%;height:auto;object-fit:contain;display:block;margin:0 auto;}");
-  d.write(".container-foto.vazio{padding:20px;font-size:13px;color:#94a3b8;border:2px dashed #e2e8f0;}");
-  d.write(".material-block{page-break-inside:avoid;break-inside:avoid;margin-bottom:16px;}");
-d.write(".grade-table{width:100%;border-collapse:collapse;margin:6px 0 4px;}");
-  d.write(".grade-table th{background:#f1f5f9;padding:6px 10px;text-align:left;font-size:11px;text-transform:uppercase;color:#475569;border:1px solid #cbd5e1;}");
-  d.write(".grade-table td{padding:6px 10px;border:1px solid #cbd5e1;font-size:14px;page-break-inside:avoid;}");
-  d.write(".grade-table td.qtd{font-weight:700;text-align:center;font-size:16px;}");
-  d.write(".grade-title{font-size:12px;text-transform:uppercase;color:#475569;font-weight:700;margin-top:6px;margin-bottom:2px;}");
-  d.write(".grade-table th{background:#f1f5f9;padding:6px 10px;text-align:left;font-size:11px;text-transform:uppercase;color:#475569;border:1px solid #cbd5e1;}");
-  d.write(".grade-table td{padding:6px 10px;border:1px solid #cbd5e1;font-size:14px;page-break-inside:avoid;}");
-  d.write(".material-divider{border-top:2px dashed #cbd5e1;margin:16px 0;page-break-after:always;}");
-  d.write(".grade-title{font-size:12px;text-transform:uppercase;color:#475569;font-weight:700;margin-top:6px;margin-bottom:2px;}");
-  d.write(".obs-box{margin-top:6px;padding:8px;background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;overflow:hidden;}");
-  d.write(".obs-box strong{font-size:11px;text-transform:uppercase;color:#475569;}");
-  d.write(".obs-box p{margin-top:2px;font-size:13px;color:#000;}");
-  d.write("@media print{");
-  d.write("body{color:#000!important;background:#fff!important;}");
-  d.write(".no-print{display:none!important;}");
-  d.write(".ficha-container{height:auto;min-height:100vh;}");
-  d.write(".material-block{page-break-inside:avoid!important;break-inside:avoid!important;}");
-  d.write(".material-divider{page-break-after:always!important;}");
-  d.write(".container-foto img{max-height:180px!important;max-width:100%!important;height:auto!important;object-fit:contain!important;}");
-  d.write(".info-item .value{color:#000!important;}");
-  d.write(".grade-table td{color:#000!important;}");
-  d.write(".header h1{color:#0d9488!important;}");
-  d.write(".obs-box p{color:#000!important;}");
-  d.write("}");
-  d.write("</style></head>" + "<body>");
-  d.write("<div class=\"no-print\"><button class=\"btn-print\" onclick=\"window.print()\">🖨️ Imprimir</button><button class=\"btn-close\" onclick=\"window.close()\">✕ Fechar</button></div>");
-  d.write("<div class=\"ficha-container\">");
-  d.write("<div class=\"header\"><h1>🧵 FICHA DE PRODUÇÃO — MALHARIA</h1><p class=\"sub\">Pedido #" + order.id + " — Cadastrado em " + order.data + " — Entrega: " + esc(dataEntrega) + "</p></div>");
-  d.write("<div class=\"info-grid\">");
-  d.write("<div class=\"info-item\"><div class=\"label\">Cliente</div><div class=\"value\">" + esc(order.cliente) + "</div></div>");
-  d.write("<div class=\"info-item\"><div class=\"label\">Telefone</div><div class=\"value\">" + esc(order.telefone || "—") + "</div></div>");
-  d.write("<div class=\"info-item\"><div class=\"label\">Status</div><div class=\"value\">" + (order.status === "pendente" ? "Aguardando Aprovacao" : order.status === "aprovado" ? "Aprovado" : order.status === "em-producao" ? "Em Producao" : order.status === "concluida" ? "Concluido" : order.status) + "</div></div>");
-  d.write("</div>");
+
+  var htmlFicha = "";
+  htmlFicha += "<style>";
+  htmlFicha += "@page{size:A4;margin:15mm;}";
+  htmlFicha += "*{margin:0;padding:0;box-sizing:border-box;}";
+  htmlFicha += "body{font-family:Arial,Helvetica,sans-serif;font-size:14px;padding:0;color:#000;background:#fff;}";
+  htmlFicha += ".no-print{text-align:right;margin-bottom:8px;padding:12px;}";
+  htmlFicha += ".no-print button{padding:8px 20px;border:none;border-radius:6px;cursor:pointer;font-size:13px;margin-left:8px;}";
+  htmlFicha += ".btn-print{background:#0d9488;color:#fff;}";
+  htmlFicha += ".btn-voltar{background:#0f766e;color:#fff;font-weight:700;}";
+  htmlFicha += ".ficha-container{display:flex;flex-direction:column;padding:15mm;}";
+  htmlFicha += ".header{text-align:center;border-bottom:3px solid #0d9488;padding-bottom:10px;margin-bottom:10px;}";
+  htmlFicha += ".header h1{font-size:20px;color:#0d9488;letter-spacing:1px;text-transform:uppercase;}";
+  htmlFicha += ".header .sub{font-size:11px;color:#64748b;margin-top:2px;}";
+  htmlFicha += ".info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;margin-bottom:6px;}";
+  htmlFicha += ".info-item{padding:4px 0;border-bottom:1px solid #e2e8f0;}";
+  htmlFicha += ".info-item .label{font-size:10px;text-transform:uppercase;color:#64748b;font-weight:700;letter-spacing:0.5px;}";
+  htmlFicha += ".info-item .value{font-size:15px;font-weight:700;margin-top:1px;color:#000;}";
+  htmlFicha += ".container-foto{width:100%;display:flex;justify-content:center;align-items:center;overflow:hidden;border:1px solid #e2e8f0;border-radius:6px;background:#fafafa;margin:12px 0;padding:12px;}";
+  htmlFicha += ".container-foto img{max-width:100%;height:auto;object-fit:contain;display:block;margin:0 auto;}";
+  htmlFicha += ".container-foto.vazio{padding:20px;font-size:13px;color:#94a3b8;border:2px dashed #e2e8f0;}";
+  htmlFicha += ".material-block{page-break-inside:avoid;break-inside:avoid;margin-bottom:16px;}";
+  htmlFicha += ".grade-table{width:100%;border-collapse:collapse;margin:6px 0 4px;}";
+  htmlFicha += ".grade-table th{background:#f1f5f9;padding:6px 10px;text-align:left;font-size:11px;text-transform:uppercase;color:#475569;border:1px solid #cbd5e1;}";
+  htmlFicha += ".grade-table td{padding:6px 10px;border:1px solid #cbd5e1;font-size:14px;page-break-inside:avoid;}";
+  htmlFicha += ".grade-table td.qtd{font-weight:700;text-align:center;font-size:16px;}";
+  htmlFicha += ".grade-title{font-size:12px;text-transform:uppercase;color:#475569;font-weight:700;margin-top:6px;margin-bottom:2px;}";
+  htmlFicha += ".material-divider{border-top:2px dashed #cbd5e1;margin:16px 0;page-break-after:always;}";
+  htmlFicha += ".obs-box{margin-top:6px;padding:8px;background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;overflow:hidden;}";
+  htmlFicha += ".obs-box strong{font-size:11px;text-transform:uppercase;color:#475569;}";
+  htmlFicha += ".obs-box p{margin-top:2px;font-size:13px;color:#000;}";
+  htmlFicha += ".rodape{margin-top:16px;text-align:center;font-size:10px;color:#94a3b8;border-top:1px solid #e2e8f0;padding-top:8px;}";
+  htmlFicha += "@media print{";
+  htmlFicha += "body{color:#000!important;background:#fff!important;}";
+  htmlFicha += ".no-print{display:none!important;}";
+  htmlFicha += ".material-block{page-break-inside:avoid!important;break-inside:avoid!important;}";
+  htmlFicha += ".material-divider{page-break-after:always!important;}";
+  htmlFicha += ".container-foto img{max-height:180px!important;max-width:100%!important;height:auto!important;object-fit:contain!important;}";
+  htmlFicha += ".info-item .value{color:#000!important;}";
+  htmlFicha += ".grade-table td{color:#000!important;}";
+  htmlFicha += ".header h1{color:#0d9488!important;}";
+  htmlFicha += ".obs-box p{color:#000!important;}";
+  htmlFicha += "}";
+  htmlFicha += "</style>";
+  htmlFicha += '<div class="no-print"><button class="btn-print" onclick="window.print()">🖨️ Imprimir</button><button class="btn-voltar" onclick="window.location.reload()">⬅ Voltar</button></div>';
+  htmlFicha += '<div class="ficha-container">';
+  htmlFicha += '<div class="header"><h1>🧵 FICHA DE PRODUÇÃO — MALHARIA</h1><p class="sub">Pedido #' + order.id + ' — Cadastrado em ' + order.data + ' — Entrega: ' + esc(dataEntrega) + '</p></div>';
+  htmlFicha += '<div class="info-grid">';
+  htmlFicha += '<div class="info-item"><div class="label">Cliente</div><div class="value">' + esc(order.cliente) + '</div></div>';
+  htmlFicha += '<div class="info-item"><div class="label">Telefone</div><div class="value">' + esc(order.telefone || "—") + '</div></div>';
+  htmlFicha += '<div class="info-item"><div class="label">Status</div><div class="value">' + (order.status === "pendente" ? "Aguardando Aprovacao" : order.status === "aprovado" ? "Aprovado" : order.status === "em-producao" ? "Em Producao" : order.status === "concluida" ? "Concluido" : order.status) + '</div></div>';
+  htmlFicha += "</div>";
   for (var mi = 0; mi < materiais.length; mi++) {
     var mat = materiais[mi];
-    if (mi > 0) { d.write("<div class=\"material-divider\"></div>"); }
-    d.write("<div class=\"material-block\">");
-    d.write("<div class=\"info-grid\" style=\"margin-bottom:4px;\">");
-    d.write("<div class=\"info-item\"><div class=\"label\">Descricao do Material</div><div class=\"value\">" + esc(mat.modelo || "—") + "</div></div>");
-    d.write("<div class=\"info-item\"><div class=\"label\">Cor da Malha</div><div class=\"value\">" + esc(mat.cor || "—") + "</div></div>");
-    d.write("</div>");
-    d.write(buildFotoHtml(mat.fotoBase64));
-    d.write("<div class=\"grade-title\">📐 Grade de Tamanhos</div>");
-    d.write("<table class=\"grade-table\"><thead><tr><th>Tamanho</th><th>Pecas</th></tr></thead><tbody>" + buildGradeRows(mat.grade) + "</tbody></table>");
-    d.write("</div>");
+    if (mi > 0) { htmlFicha += '<div class="material-divider"></div>'; }
+    htmlFicha += '<div class="material-block">';
+    htmlFicha += '<div class="info-grid" style="margin-bottom:4px;">';
+    htmlFicha += '<div class="info-item"><div class="label">Descricao do Material</div><div class="value">' + esc(mat.modelo || "—") + '</div></div>';
+    htmlFicha += '<div class="info-item"><div class="label">Cor da Malha</div><div class="value">' + esc(mat.cor || "—") + '</div></div>';
+    htmlFicha += "</div>";
+    htmlFicha += buildFotoHtml(mat.fotoBase64);
+    htmlFicha += '<div class="grade-title">📐 Grade de Tamanhos</div>';
+    htmlFicha += '<table class="grade-table"><thead><tr><th>Tamanho</th><th>Pecas</th></tr></thead><tbody>' + buildGradeRows(mat.grade) + '</tbody></table>';
+    htmlFicha += "</div>";
   }
-  d.write(obsHtml);
-  d.write("<div class=\"rodape\">Ficha de Producao — Gestao da Malharia<br>Gerada em " + new Date().toLocaleString("pt-BR") + "</div>");
-  d.write("</div></body></html>");
-  d.close();
+  htmlFicha += obsHtml;
+  htmlFicha += '<div class="rodape">Ficha de Producao — Gestao da Malharia<br>Gerada em ' + new Date().toLocaleString("pt-BR") + '</div>';
+  htmlFicha += "</div>";
 
-  var ficou = setInterval(function () {
-    if (pw.closed) { clearInterval(ficou); return; }
-    try {
-      pw.document.addEventListener("afterprint", function () { pw.close(); });
-      setTimeout(function () { if (!pw.closed) pw.close(); }, 30000);
-// ============================================================
-// VIA DO CLIENTE
-// ============================================================
+  document.body.innerHTML = htmlFicha;
+
+  var imgs = document.images;
+  var pendentes = 0;
+  for (var ip = 0; ip < imgs.length; ip++) { if (!imgs[ip].complete) pendentes++; }
+
+  function dispararImpressaoFicha() {
+    window.focus();
+    window.print();
+  }
+
+  if (pendentes === 0) {
+    setTimeout(dispararImpressaoFicha, 100);
+  } else {
+    var restantes = pendentes;
+    var jaImprimiu = false;
+    var tentarImprimirFicha = function () {
+      if (jaImprimiu) return;
+      jaImprimiu = true;
+      dispararImpressaoFicha();
+    };
+    for (var ip2 = 0; ip2 < imgs.length; ip2++) {
+      if (!imgs[ip2].complete) {
+        imgs[ip2].addEventListener("load", function () { restantes--; if (restantes <= 0) tentarImprimirFicha(); });
+        imgs[ip2].addEventListener("error", function () { restantes--; if (restantes <= 0) tentarImprimirFicha(); });
+      }
+    }
+    setTimeout(tentarImprimirFicha, 3000);
+  }
+}
+
+
 function imprimirViaCliente(orderId) {
   var order = null;
   for (var i = 0; i < orders.length; i++) {
-    if (orders[i].id === orderId) { order = orders[i]; break; }
+    if (String(orders[i].id) === String(orderId)) { order = orders[i]; break; }
   }
   if (!order) return;
 
   var pw = window.open("", "_blank", "width=800,height=600");
   if (!pw) { alert("Permita pop-ups para imprimir a via."); return; }
 
-  var primeiro = (order.materiais && order.materiais.length > 0) ? order.materiais[0] : null;
-  var modelo = primeiro ? primeiro.modelo : (order.modelo || "—");
-  var cor = primeiro ? primeiro.cor : (order.cor || "—");
-  var foto = primeiro ? (primeiro.fotoBase64 || "") : (order.fotoBase64 || "");
-  var preco = primeiro ? primeiro.precoUnitario : (order.precoUnitario || 0);
+    var materiais = (order.materiais && order.materiais.length > 0) ? order.materiais : null;
+  if (!materiais) {
+    materiais = [{
+      modelo: order.modelo || "—",
+      cor: order.cor || "—",
+      grade: order.grade || {},
+      fotoBase64: order.fotoBase64 || "",
+      quantidade: order.quantidade || 0,
+      precoUnitario: order.precoUnitario || 0
+    }];
+  }
 
-  var gradeObj = primeiro ? primeiro.grade : (order.grade || {});
-  var gradeRows = "";
-  if (typeof gradeObj === "object" && gradeObj !== null) {
-    var chaves = Object.keys(gradeObj);
-    if (chaves.length > 0) {
-      for (var gk = 0; gk < chaves.length; gk++) {
-        var tam = chaves[gk];
-        var qtd = gradeObj[tam];
-        if (qtd > 0) gradeRows += "<tr><td>" + esc(tam) + "</td><td class=\"qtd\">" + qtd + "</td></tr>";
+  function buildGradeRowsVia(gradeObj) {
+    var rows = "";
+    if (typeof gradeObj === "object" && gradeObj !== null) {
+      var chaves = Object.keys(gradeObj);
+      if (chaves.length > 0) {
+        for (var gk = 0; gk < chaves.length; gk++) {
+          var tam = chaves[gk];
+          var qtd = gradeObj[tam];
+          if (qtd > 0) rows += "<tr><td>" + esc(tam) + "</td><td class=\"qtd\">" + qtd + "</td></tr>";
+        }
+      }
+    } else {
+      var grades = String(gradeObj).split(",");
+      for (var g = 0; g < grades.length; g++) {
+        var parts = grades[g].trim().split(":");
+        rows += "<tr><td>" + esc(parts[0] || "—") + "</td><td class=\"qtd\">" + (parts[1] || "0") + "</td></tr>";
       }
     }
-  } else {
-    var grades = String(gradeObj).split(",");
-var d = pw.document;
+    return rows;
+  }
+
+  function buildFotoHtmlVia(fotoBase64) {
+    if (fotoBase64 && fotoBase64.length > 50) {
+      return '<div class="foto-wrapper"><img src="' + fotoBase64 + '" alt="Foto"></div>';
+    }
+    return '<div class="foto-wrapper vazio"><span>📷 Sem foto</span></div>';
+  }
+
+  var obsHtml = "";
+  if (order.observacoes) { obsHtml = '<div class="obs-box"><strong>📝 Observações</strong><p>' + esc(order.observacoes) + "</p></div>"; }
+
+  var dataEntrega = order.dataEntrega || "—";
+  if (dataEntrega !== "—") { var partes = dataEntrega.split("-"); if (partes.length === 3) dataEntrega = partes[2] + "/" + partes[1] + "/" + partes[0]; }
+
+  var pagLabels = { "pix":"PIX","avista":"À Vista","debito-credito":"Débito/Crédito","faturado":"Faturado 15/30 dias" };
+  var fpLabel = pagLabels[order.formaPagamento] || order.formaPagamento || "—";
+
+  var d = pw.document;
   d.write("<!DOCTYPE html><html lang=\"pt-BR\"><head><meta charset=\"UTF-8\">");
   d.write("<title>Via do Cliente - " + esc(order.cliente) + "</title><style>");
-  d.write("*{margin:0;padding:0;box-sizing:border-box;}");
-  d.write("body{font-family:Arial,Helvetica,sans-serif;font-size:14px;padding:32px;color:#000;background:#fff;}");
-  d.write(".no-print{text-align:right;margin-bottom:16px;}");
-  d.write(".no-print button{padding:8px 20px;border:none;border-radius:6px;cursor:pointer;font-size:13px;margin-left:8px;}");
+  d.write("@page{size:A4;margin:10mm;}");
+  d.write("body{font-family:Arial,Helvetica,sans-serif;font-size:12px;padding:0;color:#000;background:#fff;}");
+  d.write(".no-print{text-align:right;margin-bottom:10px;padding:10px;}");
+  d.write(".no-print button{padding:6px 16px;border:none;border-radius:6px;cursor:pointer;font-size:12px;margin-left:8px;}");
   d.write(".btn-print{background:#0d9488;color:#fff;}");
   d.write(".btn-close{background:#e2e8f0;color:#1e293b;}");
-  d.write(".header{text-align:center;border-bottom:3px solid #0d9488;padding-bottom:14px;margin-bottom:20px;}");
-  d.write(".header h1{font-size:22px;color:#0d9488;letter-spacing:1px;text-transform:uppercase;}");
-  d.write(".header .sub{font-size:12px;color:#64748b;margin-top:4px;}");
-  d.write(".info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 20px;margin-bottom:8px;}");
-  d.write(".info-item{padding:6px 0;border-bottom:1px solid #e2e8f0;}");
-  d.write(".info-item .label{font-size:10px;text-transform:uppercase;color:#64748b;font-weight:700;letter-spacing:0.5px;}");
-  d.write(".info-item .value{font-size:16px;font-weight:700;margin-top:1px;color:#000;}");
-  d.write(".foto-wrapper{text-align:center;margin:16px 0;padding:8px;}");
-  d.write(".foto-wrapper img{max-width:300px;height:auto;border-radius:4px;border:1px solid #e2e8f0;}");
-  d.write(".foto-wrapper.vazio{padding:30px;font-size:13px;color:#94a3b8;border:2px dashed #e2e8f0;}");
-  d.write(".grade-table{width:100%;border-collapse:collapse;margin:12px 0 8px;}");
-  d.write(".grade-table th{background:#f1f5f9;padding:10px 14px;text-align:left;font-size:12px;text-transform:uppercase;color:#475569;border:1px solid #cbd5e1;}");
-  d.write(".grade-table td{padding:10px 14px;border:1px solid #cbd5e1;font-size:16px;}");
-  d.write(".grade-table td.qtd{font-weight:700;text-align:center;font-size:18px;}");
-  d.write(".grade-title{font-size:14px;text-transform:uppercase;color:#475569;font-weight:700;margin-top:16px;margin-bottom:4px;}");
-  d.write(".fin-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #e2e8f0;font-size:15px;}");
+  d.write(".header{text-align:center;border-bottom:2px solid #0d9488;padding-bottom:6px;margin-bottom:8px;}");
+  d.write(".header h1{font-size:16px;color:#0d9488;letter-spacing:0.5px;text-transform:uppercase;}");
+  d.write(".header .sub{font-size:10px;color:#64748b;margin-top:2px;}");
+  d.write(".info-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;margin-bottom:4px;}");
+  d.write(".info-item{padding:2px 0;border-bottom:1px solid #e2e8f0;}");
+  d.write(".info-item .label{font-size:8px;text-transform:uppercase;color:#64748b;font-weight:700;letter-spacing:0.3px;}");
+  d.write(".info-item .value{font-size:12px;font-weight:700;margin-top:1px;color:#000;}");
+  d.write(".material-flex{display:flex;gap:10px;align-items:flex-start;margin-top:4px;}");
+  d.write(".foto-wrapper{flex:0 0 90px;text-align:center;}");
+  d.write(".foto-wrapper img{width:90px;height:90px;object-fit:cover;border-radius:4px;border:1px solid #e2e8f0;display:block;}");
+  d.write(".foto-wrapper.vazio{width:90px;height:90px;display:flex;align-items:center;justify-content:center;font-size:9px;color:#94a3b8;border:1px dashed #e2e8f0;border-radius:4px;text-align:center;padding:4px;}");
+  d.write(".grade-wrap{flex:1;min-width:0;}");
+  d.write(".grade-table{width:100%;border-collapse:collapse;margin:0;}");
+  d.write(".grade-table th{background:#f1f5f9;padding:3px 6px;text-align:left;font-size:9px;text-transform:uppercase;color:#475569;border:1px solid #cbd5e1;}");
+  d.write(".grade-table td{padding:3px 6px;border:1px solid #cbd5e1;font-size:11px;}");
+  d.write(".grade-table td.qtd{font-weight:700;text-align:center;font-size:12px;}");
+  d.write(".grade-title{font-size:9px;text-transform:uppercase;color:#475569;font-weight:700;margin-bottom:3px;}");
+  d.write(".material-block{page-break-inside:avoid;break-inside:avoid;margin-bottom:6px;padding-bottom:6px;}");
+  d.write(".material-divider{border-top:1px dashed #cbd5e1;margin:6px 0;}");
+  d.write(".fin-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #e2e8f0;font-size:11px;}");
   d.write(".fin-row .fin-label{color:#64748b;}");
   d.write(".fin-row .fin-value{font-weight:700;color:#000;}");
-  d.write(".fin-row.total{background:#f0fdfa;padding:14px 12px;border:2px solid #0d9488;border-radius:6px;margin-top:8px;}");
-  d.write(".fin-row.total .fin-value{font-size:20px;color:#0f766e;}");
-  d.write(".fin-section{background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:16px;margin:16px 0;}");
-  d.write(".fin-section h3{font-size:13px;text-transform:uppercase;color:#475569;margin-bottom:10px;}");
-  d.write(".obs-box{margin-top:16px;padding:16px;background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;}");
-  d.write(".obs-box strong{font-size:12px;text-transform:uppercase;color:#475569;}");
-  d.write(".obs-box p{margin-top:6px;font-size:15px;color:#000;}");
-  d.write(".assinatura{text-align:center;margin-top:32px;padding-top:20px;border-top:2px solid #000;font-size:11px;color:#000;}");
+  d.write(".fin-row.total{background:#f0fdfa;padding:8px 10px;border:2px solid #0d9488;border-radius:6px;margin-top:4px;}");
+  d.write(".fin-row.total .fin-value{font-size:14px;color:#0f766e;}");
+  d.write(".fin-section{background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:8px 10px;margin:8px 0;}");
+  d.write(".fin-section h3{font-size:11px;text-transform:uppercase;color:#475569;margin-bottom:4px;}");
+  d.write(".obs-box{margin-top:8px;padding:8px 10px;background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;}");
+  d.write(".obs-box strong{font-size:9px;text-transform:uppercase;color:#475569;}");
+  d.write(".obs-box p{margin-top:3px;font-size:11px;color:#000;}");
+  d.write(".assinatura{text-align:center;margin-top:14px;padding-top:8px;border-top:2px solid #000;font-size:9px;color:#000;}");
   d.write("@media print{");
   d.write("@page{margin:15mm;}");
   d.write("body{padding:0;color:#000!important;background:#fff!important;}");
   d.write(".no-print{display:none!important;}");
+  d.write(".material-block{page-break-inside:avoid!important;break-inside:avoid!important;}");
   d.write(".fin-row .fin-value{color:#000!important;}");
   d.write(".fin-row.total .fin-value{color:#0f766e!important;}");
   d.write(".fin-row.total{background:#f0fdfa!important;border:2px solid #0d9488!important;}");
@@ -1683,19 +1738,30 @@ var d = pw.document;
   d.write(".assinatura{color:#000!important;}");
   d.write("}");
   d.write("</style></head><body>");
-d.write('<div class="no-print"><button class="btn-print" onclick="window.print()">🖨️ Imprimir</button><button class="btn-close" onclick="window.close()">✕ Fechar</button></div>');
+  d.write('<div class="no-print"><button class="btn-print" onclick="window.print()">🖨️ Imprimir</button><button class="btn-close" onclick="window.close()">✕ Fechar</button></div>');
   d.write('<div class="header"><h1>🧵 VIA DO CLIENTE — APROVAÇÃO COMERCIAL</h1><p class="sub">Pedido #' + order.id + ' — ' + order.data + ' — Entrega: ' + esc(dataEntrega) + '</p></div>');
   d.write('<div class="info-grid">');
   d.write('<div class="info-item"><div class="label">Cliente</div><div class="value">' + esc(order.cliente) + "</div></div>");
   d.write('<div class="info-item"><div class="label">Telefone</div><div class="value">' + esc(order.telefone || "—") + "</div></div>");
-  d.write('<div class="info-item"><div class="label">Descrição do Material</div><div class="value">' + esc(modelo) + "</div></div>");
-  d.write('<div class="info-item"><div class="label">Cor</div><div class="value">' + esc(cor) + "</div></div>");
   d.write("</div>");
-  d.write(fotoHtml);
-  d.write('<div class="grade-title">📐 Grade de Tamanhos</div>');
-  d.write('<table class="grade-table"><thead><tr><th>Tamanho</th><th>Peças</th></tr></thead><tbody>' + gradeRows + "</tbody></table>");
+  for (var mi = 0; mi < materiais.length; mi++) {
+    var mat = materiais[mi];
+    if (mi > 0) { d.write('<div class="material-divider"></div>'); }
+    d.write('<div class="material-block">');
+    d.write('<div class="info-grid" style="margin-bottom:2px;">');
+    d.write('<div class="info-item"><div class="label">Descrição do Material</div><div class="value">' + esc(mat.modelo || "—") + "</div></div>");
+    d.write('<div class="info-item"><div class="label">Cor</div><div class="value">' + esc(mat.cor || "—") + "</div></div>");
+    d.write('<div class="info-item"><div class="label">Preço Unitário</div><div class="value">R$ ' + (mat.precoUnitario || 0).toFixed(2).replace(".", ",") + "</div></div>");
+    d.write("</div>");
+    d.write('<div class="material-flex">');
+    d.write(buildFotoHtmlVia(mat.fotoBase64));
+    d.write('<div class="grade-wrap"><div class="grade-title">📐 Grade de Tamanhos</div><table class="grade-table"><thead><tr><th>Tamanho</th><th>Peças</th></tr></thead><tbody>' + buildGradeRowsVia(mat.grade) + "</tbody></table></div>");
+    d.write("</div>");
+    d.write("</div>");
+  }
+
+
   d.write('<div class="fin-section"><h3>💰 Resumo Financeiro</h3>');
-  d.write('<div class="fin-row"><span class="fin-label">Preço Unitário</span><span class="fin-value">R$ ' + preco.toFixed(2).replace(".", ",") + '</span></div>');
   d.write('<div class="fin-row"><span class="fin-label">Subtotal (itens)</span><span class="fin-value">R$ ' + order.subtotal.toFixed(2).replace(".", ",") + '</span></div>');
   if (order.descontoReais && order.descontoReais > 0) { d.write('<div class="fin-row"><span class="fin-label">Desconto</span><span class="fin-value">- R$ ' + order.descontoReais.toFixed(2).replace(".", ",") + '</span></div>'); }
   if (order.descontoPercent && order.descontoPercent > 0) { d.write('<div class="fin-row"><span class="fin-label">Desconto (%)</span><span class="fin-value">' + order.descontoPercent + '%</span></div>'); }
@@ -1714,27 +1780,7 @@ d.write('<div class="no-print"><button class="btn-print" onclick="window.print()
     try { pw.document.addEventListener("afterprint", function () { pw.close(); }); setTimeout(function () { if (!pw.closed) pw.close(); }, 30000); } catch (e) {}
   }, 200);
 }
-    for (var g = 0; g < grades.length; g++) {
-      var parts = grades[g].trim().split(":");
-      gradeRows += "<tr><td>" + esc(parts[0] || "—") + "</td><td class=\"qtd\">" + (parts[1] || "0") + "</td></tr>";
-    }
-  }
 
-  var obsHtml = "";
-  if (order.observacoes) { obsHtml = '<div class="obs-box"><strong>📝 Observações</strong><p>' + esc(order.observacoes) + "</p></div>"; }
-
-  var fotoHtml = "";
-  if (foto && foto.length > 50) { fotoHtml = '<div class="foto-wrapper"><img src="' + foto + '" alt="Foto"></div>'; }
-  else { fotoHtml = '<div class="foto-wrapper vazio"><span>📷 Sem foto</span></div>'; }
-
-  var dataEntrega = order.dataEntrega || "—";
-  if (dataEntrega !== "—") { var partes = dataEntrega.split("-"); if (partes.length === 3) dataEntrega = partes[2] + "/" + partes[1] + "/" + partes[0]; }
-
-  var pagLabels = { "pix":"PIX","avista":"À Vista","debito-credito":"Débito/Crédito","faturado":"Faturado 15/30 dias" };
-  var fpLabel = pagLabels[order.formaPagamento] || order.formaPagamento || "—";
-    } catch (e) {}
-  }, 200);
-}
 function deleteOrder(id) {
   if (!confirm("Tem certeza que deseja excluir este pedido?")) return;
   var t = [];
