@@ -52,6 +52,43 @@ export const AdminQrScannerView: React.FC = () => {
   const scannerContainerRef = useRef<HTMLDivElement | null>(null);
   const isProcessingScanRef = useRef<boolean>(false);
 
+  // === TEMPORARY DIAGNOSTIC INSTRUMENTATION ===
+  const [qrDebugSteps, setQrDebugSteps] = useState<string[]>([]);
+  const addDebugStep = (step: string) => {
+    const entry = `[${new Date().toISOString().slice(11, 23)}] ${step}`;
+    setQrDebugSteps((prev) => {
+      const next = [...prev, entry].slice(-30);
+      try { sessionStorage.setItem('seven_qr_debug', JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
+  useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem('seven_qr_debug');
+      if (stored) setQrDebugSteps(JSON.parse(stored));
+    } catch {}
+  }, []);
+  useEffect(() => {
+    const onError = (e: ErrorEvent) => {
+      addDebugStep(`WINDOW_ERROR: ${e.message || e.error?.message || 'unknown'} | stack=${e.error?.stack?.slice(0, 200) || 'none'}`);
+    };
+    const onRejection = (e: PromiseRejectionEvent) => {
+      const reason = e.reason instanceof Error ? `${e.reason.message} | stack=${e.reason.stack?.slice(0, 200)}` : String(e.reason);
+      addDebugStep(`PROMISE_REJECT: ${reason}`);
+    };
+    window.addEventListener('error', onError);
+    window.addEventListener('unhandledrejection', onRejection);
+    return () => {
+      window.removeEventListener('error', onError);
+      window.removeEventListener('unhandledrejection', onRejection);
+    };
+  }, []);
+  // Log state transitions for diagnosis
+  useEffect(() => { addDebugStep(`STATE scannedOrder=${scannedOrder ? scannedOrder.order_number : 'null'}`); }, [scannedOrder]);
+  useEffect(() => { addDebugStep(`STATE showScanner=${showScanner}`); }, [showScanner]);
+  useEffect(() => { addDebugStep(`STATE scannerMode=${scannerMode}`); }, [scannerMode]);
+  // === END DIAGNOSTIC INSTRUMENTATION ===
+
   // Parse QR content: accept token pure or URL /pedido/:token
   const parseQrContent = (content: string): string | null => {
     if (!content) return null;
@@ -95,47 +132,53 @@ export const AdminQrScannerView: React.FC = () => {
             { facingMode: 'environment' },
             config,
             async (decodedText: string) => {
-              if (isProcessingScanRef.current) return;
+              addDebugStep('01 CALLBACK_QR');
+              if (isProcessingScanRef.current) { addDebugStep('SKIP_DUPLICATE'); return; }
               isProcessingScanRef.current = true;
 
-              // Stop scanner immediately to process
-              if (html5QrCode) {
-                await html5QrCode.stop().catch(e => console.error(e));
+              addDebugStep('02 PARSE_START');
+              const parsed = parseQrContent(decodedText);
+              if (!parsed) {
+                addDebugStep('02 PARSE_FAIL');
+                setFeedback({ type: 'error', message: 'QR Code inválido para este sistema.' });
+                isProcessingScanRef.current = false;
+                return;
               }
+              addDebugStep(`02 PARSE_OK mode=${scannerMode}`);
+
+              addDebugStep('03 STOP_START');
+              if (html5QrCode) {
+                await html5QrCode.stop().catch(e => {
+                  addDebugStep(`03 STOP_ERR: ${e?.message || e}`);
+                  console.error(e);
+                });
+              }
+              addDebugStep('03 STOP_OK');
               setIsScanning(false);
 
-              const parsed = parseQrContent(decodedText);
-
               if (scannerMode === 'initial') {
-                if (parsed) {
-                  try {
-                    await handleSearch(parsed);
-                  } catch (searchErr) {
-                    console.error('[QR] Erro ao processar pedido após scan:', searchErr);
-                    setFeedback({ type: 'error', message: 'Erro ao carregar pedido. Tente novamente.' });
-                  }
-                } else {
-                  setFeedback({ type: 'error', message: 'QR Code inválido para este sistema.' });
+                addDebugStep('04 LOOKUP_START');
+                try {
+                  await handleSearch(parsed);
+                  addDebugStep('04 LOOKUP_OK');
+                } catch (searchErr) {
+                  addDebugStep(`04 LOOKUP_ERR: ${searchErr instanceof Error ? searchErr.message : String(searchErr)}`);
+                  console.error('[QR] Erro ao processar pedido após scan:', searchErr);
+                  setFeedback({ type: 'error', message: 'Erro ao carregar pedido. Tente novamente.' });
                 }
               } else if (scannerMode === 'bag-check' && scannedOrder) {
-                // Bag check logic
+                addDebugStep('04 BAG_CHECK');
                 if (parsed === scannedOrder.qr_token) {
-                  setFeedback({
-                    type: 'success',
-                    message: '✅ SACOLA CORRETA! Pode prosseguir com a entrega.'
-                  });
+                  setFeedback({ type: 'success', message: '✅ SACOLA CORRETA! Pode prosseguir com a entrega.' });
                 } else {
-                  setFeedback({
-                    type: 'error',
-                    message: '🚫 SACOLA INCORRETA! Verifique o número do pedido.'
-                  });
+                  setFeedback({ type: 'error', message: '🚫 SACOLA INCORRETA! Verifique o número do pedido.' });
                 }
               }
 
-              // Hide scanner ONLY after async work completes to avoid
-              // useEffect cleanup racing with handleSearch
+              addDebugStep('05 HIDE_SCANNER');
               setShowScanner(false);
               isProcessingScanRef.current = false;
+              addDebugStep('06 DONE');
             },
             () => {} // Silent error handler for "no QR found" frames
           );
@@ -217,33 +260,41 @@ export const AdminQrScannerView: React.FC = () => {
   };
 
   const handleSearch = async (tokenOrNumber: string) => {
+    addDebugStep('HS_01 START');
     setFeedback(null);
     setIsLoading(true);
     const clean = tokenOrNumber.trim();
     if (!clean) {
+      addDebugStep('HS_01 EMPTY_INPUT');
       setFeedback({ type: 'error', message: 'Informe o Token ou Número do Pedido.' });
       setIsLoading(false);
       return;
     }
     try {
       let found: Order | null = null;
+      addDebugStep('HS_02 QR_LOOKUP');
       found = await db.getOrderByQrTokenAsync(clean);
       if (!found) {
+        addDebugStep('HS_03 FALLBACK_LIST');
         const orders = await db.getOrdersAsync({});
         found = orders.find(o => o.order_number.toUpperCase() === clean.toUpperCase()) || null;
       }
       if (found) {
+        addDebugStep(`HS_04 FOUND order=${found.order_number} paid=${found.payment_status}`);
         setScannedOrder(found);
         setRecipientName(found.customer_name);
         setFeedback({ type: 'success', message: 'Pedido localizado com sucesso!' });
       } else {
+        addDebugStep('HS_04 NOT_FOUND');
         setScannedOrder(null);
         setFeedback({ type: 'error', message: 'Pedido não encontrado.' });
       }
     } catch (err) {
+      addDebugStep(`HS_ERR: ${err instanceof Error ? err.message : String(err)}`);
       setFeedback({ type: 'error', message: 'Falha ao consultar o banco.' });
     } finally {
       setIsLoading(false);
+      addDebugStep('HS_05 END');
     }
   };
 
@@ -465,6 +516,16 @@ export const AdminQrScannerView: React.FC = () => {
           </div>
         </div>
       )}
+    {/* === TEMPORARY DIAGNOSTIC PANEL === */}
+      <div className="fixed bottom-0 left-0 right-0 bg-slate-900 text-[10px] font-mono text-green-400 p-2 max-h-[30vh] overflow-auto z-[60] border-t-2 border-yellow-500">
+        <div className="flex items-center justify-between mb-1">
+          <span className="font-bold text-yellow-400">DIAGNÓSTICO QR (TEMP)</span>
+          <button onClick={() => { setQrDebugSteps([]); try { sessionStorage.removeItem('seven_qr_debug'); } catch {} }} className="text-[9px] bg-red-800 text-white px-2 py-0.5 rounded">LIMPAR</button>
+        </div>
+        {qrDebugSteps.length === 0 && <span className="text-slate-500 italic">Nenhum evento registrado.</span>}
+        {qrDebugSteps.map((s, i) => <div key={i} className="truncate">{s}</div>)}
+      </div>
+      {/* === END DIAGNOSTIC PANEL === */}
     </div>
   );
 };
