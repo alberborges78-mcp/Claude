@@ -103,13 +103,17 @@ export const AdminQrScannerView: React.FC = () => {
                 await html5QrCode.stop().catch(e => console.error(e));
               }
               setIsScanning(false);
-              setShowScanner(false);
 
               const parsed = parseQrContent(decodedText);
 
               if (scannerMode === 'initial') {
                 if (parsed) {
-                  handleSearch(parsed);
+                  try {
+                    await handleSearch(parsed);
+                  } catch (searchErr) {
+                    console.error('[QR] Erro ao processar pedido após scan:', searchErr);
+                    setFeedback({ type: 'error', message: 'Erro ao carregar pedido. Tente novamente.' });
+                  }
                 } else {
                   setFeedback({ type: 'error', message: 'QR Code inválido para este sistema.' });
                 }
@@ -127,6 +131,10 @@ export const AdminQrScannerView: React.FC = () => {
                   });
                 }
               }
+
+              // Hide scanner ONLY after async work completes to avoid
+              // useEffect cleanup racing with handleSearch
+              setShowScanner(false);
               isProcessingScanRef.current = false;
             },
             () => {} // Silent error handler for "no QR found" frames
@@ -135,15 +143,33 @@ export const AdminQrScannerView: React.FC = () => {
         } catch (envError) {
           // Fallback to default camera
           if (envError instanceof Error && (envError.name === 'OverconstrainedError' || envError.name === 'NotFoundError')) {
-            await html5QrCode.start({}, config, (decodedText: string) => {
-               // Same logic as above but simplified for brevity in fallback
+            await html5QrCode.start({}, config, async (decodedText: string) => {
                if (isProcessingScanRef.current) return;
                isProcessingScanRef.current = true;
-               html5QrCode?.stop();
+               if (html5QrCode) {
+                 await html5QrCode.stop().catch(e => console.error(e));
+               }
                setIsScanning(false);
-               setShowScanner(false);
                const parsed = parseQrContent(decodedText);
-               if (scannerMode === 'initial' && parsed) handleSearch(parsed);
+               if (scannerMode === 'initial') {
+                 if (parsed) {
+                   try {
+                     await handleSearch(parsed);
+                   } catch (searchErr) {
+                     console.error('[QR] Erro ao processar pedido após scan (fallback):', searchErr);
+                     setFeedback({ type: 'error', message: 'Erro ao carregar pedido. Tente novamente.' });
+                   }
+                 } else {
+                   setFeedback({ type: 'error', message: 'QR Code inválido para este sistema.' });
+                 }
+               } else if (scannerMode === 'bag-check' && scannedOrder) {
+                 if (parsed === scannedOrder.qr_token) {
+                   setFeedback({ type: 'success', message: '✅ SACOLA CORRETA! Pode prosseguir com a entrega.' });
+                 } else {
+                   setFeedback({ type: 'error', message: '🚫 SACOLA INCORRETA! Verifique o número do pedido.' });
+                 }
+               }
+               setShowScanner(false);
                isProcessingScanRef.current = false;
             }, () => {});
             setIsScanning(true);
