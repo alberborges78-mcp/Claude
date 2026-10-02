@@ -388,19 +388,30 @@ export const AdminQrScannerView: React.FC = () => {
   };
 
   const handleConfirmDelivery = async () => {
-    if (!scannedOrder) return;
+    addDebugStep('DELIVERY_01 CLICK');
+    if (!scannedOrder) {
+      addDebugStep('DELIVERY_BLOCKED reason=no_scanned_order');
+      return;
+    }
     if (!recipientName.trim()) {
+      addDebugStep('DELIVERY_BLOCKED reason=empty_recipient_name');
       setFeedback({ type: 'error', message: 'Informe o nome de quem está retirando.' });
       return;
     }
+    addDebugStep('DELIVERY_02 VALIDATION_OK');
     setIsProcessing(true);
     try {
+      addDebugStep('DELIVERY_03 RPC_START');
       await db.confirmDeliveryAsync(scannedOrder.id, user?.name || 'Admin', recipientName, 'Retirada na loja');
+      addDebugStep('DELIVERY_04 RPC_OK');
       const refreshed = await db.getOrderByQrTokenAsync(scannedOrder.qr_token || '');
       if (refreshed) setScannedOrder(refreshed);
+      addDebugStep(`DELIVERY_05 UI_UPDATED status=${refreshed?.delivery_status || 'unknown'}`);
       setFeedback({ type: 'success', message: 'Retirada realizada com sucesso!' });
     } catch (err: unknown) {
-      setFeedback({ type: 'error', message: err instanceof Error ? err.message : 'Erro ao confirmar entrega.' });
+      const msg = err instanceof Error ? err.message : String(err);
+      addDebugStep(`DELIVERY_04 RPC_ERROR ${msg.slice(0, 200)}`);
+      setFeedback({ type: 'error', message: msg || 'Erro ao confirmar entrega.' });
     } finally {
       setIsProcessing(false);
     }
