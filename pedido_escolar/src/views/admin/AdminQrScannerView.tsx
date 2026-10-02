@@ -387,6 +387,20 @@ export const AdminQrScannerView: React.FC = () => {
     }
   };
 
+  // Reset attendance state to prepare for next customer. Shared by post-delivery and "scan another" button.
+  const resetAttendance = () => {
+    setScannedOrder(null);
+    setRecipientName('');
+    setFeedback(null);
+    setTokenInput('');
+    setSelectedPaymentMethod(null);
+    setShowPaymentModal(false);
+    setScannerMode('initial');
+    setShowScanner(false);
+    setIsScanning(false);
+    isProcessingScanRef.current = false;
+  };
+
   const handleConfirmDelivery = async () => {
     addDebugStep('DELIVERY_01 CLICK');
     if (!scannedOrder) {
@@ -404,10 +418,10 @@ export const AdminQrScannerView: React.FC = () => {
       addDebugStep('DELIVERY_03 RPC_START');
       await db.confirmDeliveryAsync(scannedOrder.id, user?.name || 'Admin', recipientName, 'Retirada na loja');
       addDebugStep('DELIVERY_04 RPC_OK');
-      const refreshed = await db.getOrderByQrTokenAsync(scannedOrder.qr_token || '');
-      if (refreshed) setScannedOrder(refreshed);
-      addDebugStep(`DELIVERY_05 UI_UPDATED status=${refreshed?.delivery_status || 'unknown'}`);
-      setFeedback({ type: 'success', message: 'Retirada realizada com sucesso!' });
+      addDebugStep('DELIVERY_05 RESET_ATTENDANCE');
+      resetAttendance();
+      addDebugStep('DELIVERY_06 READY_NEXT_CUSTOMER');
+      setFeedback({ type: 'success', message: 'Retirada realizada com sucesso! Pronto para o próximo cliente.' });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       addDebugStep(`DELIVERY_04 RPC_ERROR ${msg.slice(0, 200)}`);
@@ -533,7 +547,37 @@ export const AdminQrScannerView: React.FC = () => {
               </button>
             </div>
           ) : (
-            <div className="p-4 bg-slate-100 rounded-2xl text-center text-xs font-bold text-slate-500">✓ Entrega finalizada e arquivada</div>
+            <div className="p-6 bg-purple-50 border-2 border-purple-300 rounded-3xl space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
+                  <PackageCheck className="w-6 h-6 text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black tracking-wide text-purple-900">PEDIDO JÁ ENTREGUE</h3>
+                  <p className="text-xs text-purple-700">Este pedido foi retirado anteriormente.</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div className="p-3 bg-white rounded-xl border border-purple-200">
+                  <span className="block text-[10px] font-bold text-purple-500 uppercase mb-0.5">Retirado em</span>
+                  <span className="font-bold text-purple-900">{scannedOrder.updated_at ? formatDateTime(scannedOrder.updated_at) : '—'}</span>
+                </div>
+                <div className="p-3 bg-white rounded-xl border border-purple-200">
+                  <span className="block text-[10px] font-bold text-purple-500 uppercase mb-0.5">Retirado por</span>
+                  <span className="font-bold text-purple-900">{recipientName || scannedOrder.customer_name || '—'}</span>
+                </div>
+              </div>
+              <button onClick={resetAttendance} className="w-full py-3.5 px-4 bg-sky-600 hover:bg-sky-500 text-white rounded-2xl font-black text-xs sm:text-sm shadow-md transition-all active:scale-[0.99] flex items-center justify-center gap-2">
+                <QrCode className="w-5 h-5" /> ESCANEAR OUTRO QR-CODE
+              </button>
+            </div>
+          )}
+
+          {/* Scan Another QR button for active (non-delivered) orders */}
+          {!isDelivered && (
+            <button onClick={resetAttendance} className="w-full py-3 px-4 mt-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl font-bold text-xs sm:text-sm transition-all active:scale-[0.99] flex items-center justify-center gap-2">
+              <QrCode className="w-4 h-4" /> ESCANEAR OUTRO QR-CODE
+            </button>
           )}
         </div>
       )}
