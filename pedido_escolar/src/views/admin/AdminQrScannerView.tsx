@@ -51,6 +51,9 @@ export const AdminQrScannerView: React.FC = () => {
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
   const scannerContainerRef = useRef<HTMLDivElement | null>(null);
   const isProcessingScanRef = useRef<boolean>(false);
+  // Stable ref to access scannedOrder inside scanner callback without
+  // making it a dependency of the scanner useEffect (avoids re-init/cleanup race)
+  const scannedOrderRef = useRef<Order | null>(null);
 
   // === TEMPORARY DIAGNOSTIC INSTRUMENTATION ===
   const [qrDebugSteps, setQrDebugSteps] = useState<string[]>([]);
@@ -92,6 +95,11 @@ export const AdminQrScannerView: React.FC = () => {
       window.removeEventListener('unhandledrejection', onRejection);
     };
   }, []);
+  // Keep scannedOrderRef in sync so scanner callback can read current order
+  // without making scannedOrder a dependency of the scanner useEffect
+  useEffect(() => {
+    scannedOrderRef.current = scannedOrder;
+  }, [scannedOrder]);
   // Log state transitions for diagnosis
   useEffect(() => {
     const val = scannedOrder ? scannedOrder.order_number : 'null';
@@ -119,6 +127,7 @@ export const AdminQrScannerView: React.FC = () => {
     let html5QrCode: Html5Qrcode | null = null;
 
     const initScanner = async () => {
+      addDebugStep('SCANNER_EFFECT_START');
       if (!showScanner || !scannerContainerRef.current) return;
       if (isProcessingScanRef.current) return;
 
@@ -146,53 +155,55 @@ export const AdminQrScannerView: React.FC = () => {
             { facingMode: 'environment' },
             config,
             async (decodedText: string) => {
-              addDebugStep('01 CALLBACK_QR');
-              if (isProcessingScanRef.current) { addDebugStep('SKIP_DUPLICATE'); return; }
-              isProcessingScanRef.current = true;
+              try {
+                addDebugStep('01 CALLBACK_QR');
+                if (isProcessingScanRef.current) { addDebugStep('SKIP_DUPLICATE'); return; }
+                isProcessingScanRef.current = true;
 
-              addDebugStep('02 PARSE_START');
-              const parsed = parseQrContent(decodedText);
-              if (!parsed) {
-                addDebugStep('02 PARSE_FAIL');
-                setFeedback({ type: 'error', message: 'QR Code inválido para este sistema.' });
+                addDebugStep('02 PARSE_START');
+                const parsed = parseQrContent(decodedText);
+                if (!parsed) {
+                  addDebugStep('02 PARSE_FAIL');
+                  setFeedback({ type: 'error', message: 'QR Code inválido para este sistema.' });
+                  return;
+                }
+                addDebugStep(`02 PARSE_OK mode=${scannerMode}`);
+
+                addDebugStep('03 STOP_START');
+                if (html5QrCode) {
+                  await html5QrCode.stop().catch(e => {
+                    addDebugStep(`03 STOP_ERR: ${e?.message || e}`);
+                    console.error(e);
+                  });
+                }
+                addDebugStep('03 STOP_OK');
+                setIsScanning(false);
+
+                if (scannerMode === 'initial') {
+                  addDebugStep('04 LOOKUP_START');
+                  try {
+                    await handleSearch(parsed);
+                    addDebugStep('04 LOOKUP_OK');
+                  } catch (searchErr) {
+                    addDebugStep(`04 LOOKUP_ERR: ${searchErr instanceof Error ? searchErr.message : String(searchErr)}`);
+                    console.error('[QR] Erro ao processar pedido após scan:', searchErr);
+                    setFeedback({ type: 'error', message: 'Erro ao carregar pedido. Tente novamente.' });
+                  }
+                } else if (scannerMode === 'bag-check' && scannedOrderRef.current) {
+                  addDebugStep('04 BAG_CHECK');
+                  if (parsed === scannedOrderRef.current.qr_token) {
+                    setFeedback({ type: 'success', message: '✅ SACOLA CORRETA! Pode prosseguir com a entrega.' });
+                  } else {
+                    setFeedback({ type: 'error', message: '🚫 SACOLA INCORRETA! Verifique o número do pedido.' });
+                  }
+                }
+
+                addDebugStep('05 HIDE_SCANNER');
+                setShowScanner(false);
+                addDebugStep('06 DONE');
+              } finally {
                 isProcessingScanRef.current = false;
-                return;
               }
-              addDebugStep(`02 PARSE_OK mode=${scannerMode}`);
-
-              addDebugStep('03 STOP_START');
-              if (html5QrCode) {
-                await html5QrCode.stop().catch(e => {
-                  addDebugStep(`03 STOP_ERR: ${e?.message || e}`);
-                  console.error(e);
-                });
-              }
-              addDebugStep('03 STOP_OK');
-              setIsScanning(false);
-
-              if (scannerMode === 'initial') {
-                addDebugStep('04 LOOKUP_START');
-                try {
-                  await handleSearch(parsed);
-                  addDebugStep('04 LOOKUP_OK');
-                } catch (searchErr) {
-                  addDebugStep(`04 LOOKUP_ERR: ${searchErr instanceof Error ? searchErr.message : String(searchErr)}`);
-                  console.error('[QR] Erro ao processar pedido após scan:', searchErr);
-                  setFeedback({ type: 'error', message: 'Erro ao carregar pedido. Tente novamente.' });
-                }
-              } else if (scannerMode === 'bag-check' && scannedOrder) {
-                addDebugStep('04 BAG_CHECK');
-                if (parsed === scannedOrder.qr_token) {
-                  setFeedback({ type: 'success', message: '✅ SACOLA CORRETA! Pode prosseguir com a entrega.' });
-                } else {
-                  setFeedback({ type: 'error', message: '🚫 SACOLA INCORRETA! Verifique o número do pedido.' });
-                }
-              }
-
-              addDebugStep('05 HIDE_SCANNER');
-              setShowScanner(false);
-              isProcessingScanRef.current = false;
-              addDebugStep('06 DONE');
             },
             () => {} // Silent error handler for "no QR found" frames
           );
@@ -247,14 +258,24 @@ export const AdminQrScannerView: React.FC = () => {
     if (showScanner) initScanner();
 
     return () => {
+      addDebugStep('SCANNER_CLEANUP_START');
       mounted = false;
       if (html5QrCodeRef.current) {
-        html5QrCodeRef.current.stop().catch(() => {});
+        addDebugStep('SCANNER_CLEANUP_STOP');
+        html5QrCodeRef.current.stop().catch((e) => {
+          addDebugStep(`SCANNER_CLEANUP_STOP_ERR: ${e?.message || e}`);
+        });
+        addDebugStep('SCANNER_CLEANUP_CLEAR');
+        try { html5QrCodeRef.current.clear(); } catch (e: any) {
+          addDebugStep(`SCANNER_CLEANUP_CLEAR_ERR: ${e?.message || e}`);
+        }
         html5QrCodeRef.current = null;
       }
       setIsScanning(false);
+      isProcessingScanRef.current = false;
+      addDebugStep('SCANNER_CLEANUP_END');
     };
-  }, [showScanner, scannerMode, scannedOrder]);
+  }, [showScanner, scannerMode]);
 
   const startScanner = (mode: 'initial' | 'bag-check' = 'initial') => {
     setScannerMode(mode);
