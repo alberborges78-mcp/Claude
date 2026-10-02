@@ -14,6 +14,7 @@ import {
   Camera,
   Loader2,
   ScanBarcode,
+  ChevronLeft,
 } from 'lucide-react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { db } from '../../services/db';
@@ -363,10 +364,36 @@ export const AdminQrScannerView: React.FC = () => {
       {/* Payment Modal */}
       {showPaymentModal && scannedOrder && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden">
-            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-              <h3 className="text-lg font-black text-slate-900">Confirmar Pagamento</h3>
-              <button onClick={() => setShowPaymentModal(false)} disabled={isProcessing} className="p-2 hover:bg-slate-100 rounded-xl transition-colors"><X className="w-5 h-5 text-slate-500" /></button>
+          <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="sticky top-0 bg-white px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2 z-10 shrink-0">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setShowPaymentModal(false)}
+                  disabled={isProcessing}
+                  className="w-10 h-10 inline-flex items-center justify-center rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors shrink-0"
+                  aria-label="Voltar para Central de Retirada"
+                  type="button"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <div>
+                  <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider block">
+                    FINANCEIRO
+                  </span>
+                  <h3 className="text-base sm:text-lg font-black text-slate-900 leading-tight">
+                    Confirmar Pagamento — {scannedOrder.order_number}
+                  </h3>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowPaymentModal(false)}
+                disabled={isProcessing}
+                className="hidden sm:inline-flex w-10 h-10 items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all"
+                aria-label="Fechar modal"
+                type="button"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
             <div className="p-6 space-y-4">
               <p className="text-xs text-slate-500 text-center">Selecione a forma de recebimento presencial:</p>

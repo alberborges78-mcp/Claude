@@ -1096,6 +1096,15 @@ class DatabaseService {
       if (error) {
         throw new Error(`Erro ao confirmar pagamento no banco: ${error.message}`);
       }
+      // Invalidate local cache so subsequent reads reflect the remote update
+      const idx = this.state.orders.findIndex((o) => o.id === orderId);
+      if (idx >= 0) {
+        this.state.orders[idx] = {
+          ...this.state.orders[idx],
+          payment_status: 'PAGO',
+          updated_at: new Date().toISOString(),
+        };
+      }
       return this.getOrderById(orderId)!;
     }
 
@@ -1228,6 +1237,27 @@ class DatabaseService {
     this.state.deliveries.push(deliveryAudit);
     this.state.events.push(event);
     return order;
+  }
+
+  /**
+   * Async Production Status Update via RPC (Secure & Persistent)
+   */
+  public async updateProductionStatusAsync(
+    orderId: string,
+    newStatus: ProductionStatus
+  ): Promise<void> {
+    if (isSupabaseConfigured) {
+      const { error } = await supabase.rpc('rpc_update_production_status', {
+        p_order_id: orderId,
+        p_new_status: newStatus,
+      });
+      if (error) {
+        throw new Error(`Erro ao atualizar produção: ${error.message}`);
+      }
+      return;
+    }
+    // Fallback local (should not happen in production with Supabase configured)
+    this.updateProductionStatus(orderId, newStatus);
   }
 
   /**
