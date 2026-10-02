@@ -701,6 +701,24 @@ class DatabaseService {
           items,
         };
 
+        // Fetch real delivery data if order is delivered
+        if (mappedOrder.delivery_status === 'ENTREGUE') {
+          try {
+            const { data: deliveryData } = await supabase
+              .from('deliveries')
+              .select('delivered_at, delivered_by_admin, recipient_name')
+              .eq('order_id', mappedOrder.id)
+              .maybeSingle();
+            if (deliveryData) {
+              mappedOrder.delivered_at = deliveryData.delivered_at;
+              mappedOrder.delivered_by_admin = deliveryData.delivered_by_admin;
+              mappedOrder.delivery_recipient_name = deliveryData.recipient_name;
+            }
+          } catch (e) {
+            console.error('Erro ao buscar dados de entrega:', e);
+          }
+        }
+
         return mappedOrder;
       } catch (err) {
         console.error('Exceção ao consultar pedido por QR Token:', err);

@@ -103,6 +103,10 @@ export interface Order {
   items?: OrderItem[];
   campaign?: Campaign;
   school?: School;
+  // Delivery audit fields (populated only when delivery_status === 'ENTREGUE')
+  delivered_at?: string | null;
+  delivered_by_admin?: string | null;
+  delivery_recipient_name?: string | null;
 }
 
 export interface OrderLookupInput {

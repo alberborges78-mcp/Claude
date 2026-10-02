@@ -560,11 +560,11 @@ export const AdminQrScannerView: React.FC = () => {
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <div className="p-3 bg-white rounded-xl border border-purple-200">
                   <span className="block text-[10px] font-bold text-purple-500 uppercase mb-0.5">Retirado em</span>
-                  <span className="font-bold text-purple-900">{scannedOrder.updated_at ? formatDateTime(scannedOrder.updated_at) : '—'}</span>
+                  <span className="font-bold text-purple-900">{scannedOrder.delivered_at ? formatDateTime(scannedOrder.delivered_at) : '—'}</span>
                 </div>
                 <div className="p-3 bg-white rounded-xl border border-purple-200">
                   <span className="block text-[10px] font-bold text-purple-500 uppercase mb-0.5">Retirado por</span>
-                  <span className="font-bold text-purple-900">{recipientName || scannedOrder.customer_name || '—'}</span>
+                  <span className="font-bold text-purple-900">{scannedOrder.delivery_recipient_name || scannedOrder.customer_name || '—'}</span>
                 </div>
               </div>
               <button onClick={resetAttendance} className="w-full py-3.5 px-4 bg-sky-600 hover:bg-sky-500 text-white rounded-2xl font-black text-xs sm:text-sm shadow-md transition-all active:scale-[0.99] flex items-center justify-center gap-2">
