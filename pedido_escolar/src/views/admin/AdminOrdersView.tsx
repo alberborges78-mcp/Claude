@@ -8,11 +8,13 @@ X,
 Loader2,
 AlertCircle,
 CheckCircle2,
+Printer,
 } from 'lucide-react';
 import { db } from '../../services/db';
 import { Order, PaymentStatus, ProductionStatus, DeliveryStatus, InStorePaymentMethod } from '../../types';
 import { formatCurrency, formatDateTime, formatPhone } from '../../utils/formatters';
 import { generateOrderPDF } from '../../utils/pdfGenerator';
+import { generateLabelHTML, printLabel } from '../../utils/labelGenerator';
 import { useAuth } from '../../context/AuthContext';
 const PAYMENT_METHODS: { value: InStorePaymentMethod; label: string }[] = [
 { value: 'PIX', label: 'PIX' },
@@ -40,7 +42,6 @@ const loadOrders = async () => {
 setIsLoading(true);
 setError(null);
 try {
-// Fetch all orders first to allow client-side filtering for search and complex filters
 const allOrders = await db.getOrdersAsync({});
 if (mounted) {
 setOrders(allOrders);
@@ -63,7 +64,6 @@ mounted = false;
 }, []);
 // Client-side filtering based on current state
 const filteredOrders = orders.filter((o) => {
-// Search filter
 if (searchTerm) {
 const q = searchTerm.toLowerCase().trim();
 const matchesNumber = o.order_number.toLowerCase().includes(q);
@@ -74,15 +74,12 @@ if (!matchesNumber && !matchesCustomer && !matchesPhone && !matchesStudents) {
 return false;
 }
 }
-// Payment filter
 if (paymentFilter !== 'ALL' && o.payment_status !== paymentFilter) {
 return false;
 }
-// Production filter
 if (productionFilter !== 'ALL' && o.production_status !== productionFilter) {
 return false;
 }
-// Delivery filter
 if (deliveryFilter !== 'ALL' && o.delivery_status !== deliveryFilter) {
 return false;
 }
@@ -102,7 +99,6 @@ selectedOrder.id,
 user?.name || 'Administrador Seven',
 selectedPaymentMethod
 );
-// Recarregar lista completa para refletir mudança
 const allOrders = await db.getOrdersAsync({});
 setOrders(allOrders);
 setShowPaymentModal(false);
@@ -115,13 +111,6 @@ setIsProcessing(false);
 };
 const handleUpdateProduction = async (orderId: string, status: ProductionStatus) => {
 // Note: As per audit, there is no secure RPC for production status yet.
-// We will keep the local update for now but warn that it's not persistent in Supabase via RPC.
-// If a secure RPC exists or is created, this should be updated.
-// For now, we'll use the local method but note that it might not persist across refreshes if not backed by Supabase RPC.
-// Actually, let's check if db.updateProductionStatus is async/RPC based.
-// Audit said: "Se NÃO existir operação segura já implementada: NÃO invente UPDATE direto."
-// We will leave this button disabled or show a warning if no RPC exists.
-// For this implementation, we will assume it's a visual-only change until a secure RPC is provided.
 alert('Atualização de produção ainda não possui integração segura com Supabase nesta versão.');
 };
 const handleConfirmDelivery = async (orderId: string) => {
@@ -134,7 +123,6 @@ user?.name || 'Administrador Seven',
 selectedOrder.customer_name,
 'Retirado via Gestão de Pedidos'
 );
-// Recarregar lista completa
 const allOrders = await db.getOrdersAsync({});
 setOrders(allOrders);
 setSelectedOrder(null);
@@ -147,6 +135,15 @@ setIsProcessing(false);
 const handleDownloadPdf = (order: Order) => {
 const origin = typeof window !== 'undefined' ? window.location.origin : '';
 generateOrderPDF(order, `${origin}/pedido/${order.qr_token}`);
+};
+const handlePrintLabel = async (order: Order) => {
+try {
+const html = await generateLabelHTML(order, 'thermal'); // Default to thermal
+printLabel(html);
+} catch (e) {
+console.error('Erro ao gerar etiqueta:', e);
+alert('Não foi possível gerar a etiqueta.');
+}
 };
 return (
 <div className="space-y-6">
@@ -305,6 +302,13 @@ title="Ver Detalhes do Pedido"
 <Eye className="w-4 h-4" />
 </button>
 <button
+onClick={() => handlePrintLabel(o)}
+className="p-1.5 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors"
+title="Imprimir Etiqueta da Sacola"
+>
+<Printer className="w-4 h-4" />
+</button>
+<button
 onClick={() => handleDownloadPdf(o)}
 className="p-1.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
 title="Baixar Comprovante PDF"
@@ -324,7 +328,7 @@ title="Baixar Comprovante PDF"
 </div>
 )}
 </div>
-{/* Order Details Modal */}
+{/* Order Details Modal (Ficha Operacional) */}
 {selectedOrder && (
 <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in">
 <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[92vh] overflow-y-auto shadow-2xl border border-slate-200 flex flex-col">
@@ -332,7 +336,7 @@ title="Baixar Comprovante PDF"
 <div className="sticky top-0 bg-white px-6 py-4 border-b border-slate-100 flex items-center justify-between z-10">
 <div>
 <span className="text-[10px] font-bold text-sky-600 uppercase tracking-wider">
-Detalhes Administrativos
+FICHA OPERACIONAL
 </span>
 <h3 className="text-xl font-black text-slate-900 font-['Outfit']">
 Pedido {selectedOrder.order_number}
@@ -347,7 +351,7 @@ className="p-1.5 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate
 </div>
 {/* Modal Body */}
 <div className="p-6 space-y-6">
-{/* Customer and Dates */}
+{/* Identification Section */}
 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100 text-xs">
 <div>
 <span className="text-slate-400 font-bold uppercase text-[10px]">Responsável</span>
@@ -355,78 +359,12 @@ className="p-1.5 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate
 <p className="text-slate-600">{formatPhone(selectedOrder.customer_whatsapp)}</p>
 </div>
 <div>
-<span className="text-slate-400 font-bold uppercase text-[10px]">Forma de Pagamento</span>
-<p className="font-extrabold text-slate-900 text-sm mt-0.5">
-{selectedOrder.payment_method === 'PIX' ? 'PIX (Banco do Brasil)' : 'Pagar na Loja Física'}
-</p>
-<p className="text-slate-500">Data: {formatDateTime(selectedOrder.created_at)}</p>
+<span className="text-slate-400 font-bold uppercase text-[10px]">Data / Hora</span>
+<p className="font-extrabold text-slate-900 text-sm mt-0.5">{formatDateTime(selectedOrder.created_at)}</p>
+<p className="text-slate-500">Método: {selectedOrder.payment_method === 'PIX' ? 'PIX' : 'Loja Física'}</p>
 </div>
 </div>
-{/* Status Management Actions */}
-<div className="p-4 bg-slate-900 text-white rounded-2xl space-y-4">
-<h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
-Ações Administrativas no Pedido
-</h4>
-<div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-{/* Payment toggle */}
-<div>
-<label className="text-[10px] text-slate-400 font-bold block mb-1">
-Status Financeiro:
-</label>
-{selectedOrder.payment_status === 'PAGO' ? (
-<span className="inline-block px-3 py-1.5 bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 rounded-xl text-xs font-black">
-✓ PAGO
-</span>
-) : (
-<button
-onClick={() => handleOpenPaymentModal(selectedOrder)}
-className="w-full py-2 px-3 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black rounded-xl shadow transition-all active:scale-95"
->
-Confirmar Pagamento
-</button>
-)}
-</div>
-{/* Production status */}
-<div>
-<label className="text-[10px] text-slate-400 font-bold block mb-1">
-Status de Produção:
-</label>
-<select
-value={selectedOrder.production_status}
-onChange={(e) => handleUpdateProduction(selectedOrder.id, e.target.value as ProductionStatus)}
-className="w-full py-1.5 px-2 bg-slate-800 border border-slate-700 text-white rounded-xl text-xs font-bold"
->
-<option value="PENDENTE">PENDENTE</option>
-<option value="EM_PRODUCAO">EM PRODUÇÃO</option>
-<option value="PRONTO">PRONTO</option>
-</select>
-</div>
-{/* Delivery confirmation */}
-<div>
-<label className="text-[10px] text-slate-400 font-bold block mb-1">
-Status de Entrega:
-</label>
-{selectedOrder.delivery_status === 'ENTREGUE' ? (
-<span className="inline-block px-3 py-1.5 bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 rounded-xl text-xs font-black">
-✓ ENTREGUE
-</span>
-) : selectedOrder.payment_status !== 'PAGO' ? (
-<div className="p-2 bg-red-900/50 border border-red-700 rounded-xl text-[10px] text-red-200 font-bold text-center">
-BLOQUEADO: PAGAMENTO PENDENTE
-</div>
-) : (
-<button
-onClick={() => handleConfirmDelivery(selectedOrder.id)}
-disabled={isProcessing}
-className="w-full py-2 px-3 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white text-xs font-black rounded-xl shadow transition-all active:scale-95"
->
-Confirmar Entrega
-</button>
-)}
-</div>
-</div>
-</div>
-{/* Items Table */}
+{/* Items Breakdown */}
 <div className="space-y-2">
 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">
 Itens do Pedido ({selectedOrder.total_items} camisas)
@@ -456,14 +394,85 @@ Tamanho: <strong>{item.size_label}</strong> (Qtd: {item.quantity}) • {formatCu
 ))}
 </div>
 </div>
-{/* PDF Voucher Button */}
-<div className="pt-2">
+{/* Operational Actions */}
+<div className="p-4 bg-slate-900 text-white rounded-2xl space-y-4">
+<h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
+Ações Administrativas
+</h4>
+<div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+{/* Payment toggle */}
+<div>
+<label className="text-[10px] text-slate-400 font-bold block mb-1">
+Financeiro:
+</label>
+{selectedOrder.payment_status === 'PAGO' ? (
+<span className="inline-block px-3 py-1.5 bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 rounded-xl text-xs font-black">
+✓ PAGO
+</span>
+) : (
+<button
+onClick={() => handleOpenPaymentModal(selectedOrder)}
+className="w-full py-2 px-3 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black rounded-xl shadow transition-all active:scale-95"
+>
+Confirmar Pagamento
+</button>
+)}
+</div>
+{/* Production status */}
+<div>
+<label className="text-[10px] text-slate-400 font-bold block mb-1">
+Produção:
+</label>
+<select
+value={selectedOrder.production_status}
+onChange={(e) => handleUpdateProduction(selectedOrder.id, e.target.value as ProductionStatus)}
+className="w-full py-1.5 px-2 bg-slate-800 border border-slate-700 text-white rounded-xl text-xs font-bold"
+>
+<option value="PENDENTE">PENDENTE</option>
+<option value="EM_PRODUCAO">EM PRODUÇÃO</option>
+<option value="PRONTO">PRONTO</option>
+</select>
+</div>
+{/* Delivery confirmation */}
+<div>
+<label className="text-[10px] text-slate-400 font-bold block mb-1">
+Entrega:
+</label>
+{selectedOrder.delivery_status === 'ENTREGUE' ? (
+<span className="inline-block px-3 py-1.5 bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 rounded-xl text-xs font-black">
+✓ ENTREGUE
+</span>
+) : selectedOrder.payment_status !== 'PAGO' ? (
+<div className="p-2 bg-red-900/50 border border-red-700 rounded-xl text-[10px] text-red-200 font-bold text-center">
+BLOQUEADO: PAGAMENTO PENDENTE
+</div>
+) : (
+<button
+onClick={() => handleConfirmDelivery(selectedOrder.id)}
+disabled={isProcessing}
+className="w-full py-2 px-3 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white text-xs font-black rounded-xl shadow transition-all active:scale-95"
+>
+Confirmar Entrega
+</button>
+)}
+</div>
+</div>
+</div>
+{/* Footer Buttons */}
+<div className="pt-2 flex gap-3">
+<button
+onClick={() => handlePrintLabel(selectedOrder)}
+className="flex-1 py-3 bg-indigo-100 hover:bg-indigo-200 text-indigo-800 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 transition-all"
+>
+<Printer className="w-4 h-4" />
+Imprimir Etiqueta (Sacola)
+</button>
 <button
 onClick={() => handleDownloadPdf(selectedOrder)}
-className="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 transition-all"
+className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 transition-all"
 >
 <Download className="w-4 h-4" />
-Gerar / Baixar Comprovante Oficial (PDF)
+Comprovante PDF
 </button>
 </div>
 </div>
