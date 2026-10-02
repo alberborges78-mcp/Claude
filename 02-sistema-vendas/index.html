@@ -1,4 +1,4 @@
-c<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -13,15 +13,15 @@ c<!DOCTYPE html>
 <body>
   <div class="app-shell">
     <aside class="sidebar" id="sidebar">
-      <div class="brand"><span class="brand-mark">🧵</span><span>Vendas &amp; Faturamento</span></div>
-      <p class="module-tag">Módulo principal do sistema</p>
+      <div class="brand"><span class="brand-mark">VF</span><span>Vendas <em>&amp;</em> Faturamento</span></div>
+      <p class="module-tag"><span></span> Central de operações</p>
 
       <nav class="main-nav" aria-label="Navegação principal">
         <p class="nav-label">Abas do módulo</p>
-        <a class="nav-item" data-tab="relatorios" href="#relatorios"><span class="nav-icon">📊</span> Painel Principal</a>
-        <a class="nav-item" data-tab="vendas" href="#vendas"><span class="nav-icon">💰</span> Vendas e Clientes <span class="nav-tag" id="adminTag">Admin</span></a>
-        <a class="nav-item" data-tab="producao" href="#producao"><span class="nav-icon">📋</span> Ordens de Produção <span class="nav-badge" id="pendingBadge">0</span></a>
-        <a class="nav-item" data-tab="estoque" href="#estoque"><span class="nav-icon">📦</span> Estoque de Insumos</a>
+        <a class="nav-item" data-tab="relatorios" href="#relatorios"><span class="nav-icon">⌁</span> Painel Principal</a>
+        <a class="nav-item" data-tab="vendas" href="#vendas"><span class="nav-icon">◇</span> Vendas e Clientes <span class="nav-tag" id="adminTag">Admin</span></a>
+        <a class="nav-item" data-tab="producao" href="#producao"><span class="nav-icon">▤</span> Ordens de Produção <span class="nav-badge" id="pendingBadge">0</span></a>
+        <a class="nav-item" data-tab="estoque" href="#estoque"><span class="nav-icon">◫</span> Estoque de Insumos</a>
       </nav>
 
       <div class="sidebar-bottom">
@@ -52,145 +52,143 @@ c<!DOCTYPE html>
         <!-- ABA 1 - VENDAS E CLIENTES -->
         <section class="tab-panel" id="tab-vendas" data-role-restricted="admin" hidden>
           <section class="welcome-row">
-            <div><p class="eyebrow">SETOR COMERCIAL</p><h1>💰 Vendas e Clientes <span>✦</span></h1><p class="subtitle">Cadastre o cliente, o pedido da malha, o preço e acompanhe o valor total das vendas.</p></div>
-            <div class="header-actions"><button class="primary-button" id="newSaleButton"><span>＋</span> Novo pedido de venda</button></div>
-          </section>
-
-          <section class="metric-grid">
-            <article class="metric-card"><span class="metric-label">Faturamento total</span><strong id="metricFaturamento">R$ 0,00</strong><small class="metric-hint">Soma de todas as vendas registradas</small></article>
-            <article class="metric-card"><span class="metric-label">Pedidos registrados</span><strong id="metricPedidos">0</strong><small class="metric-hint">Total de vendas no sistema</small></article>
-            <article class="metric-card"><span class="metric-label">Ticket médio</span><strong id="metricTicket">R$ 0,00</strong><small class="metric-hint">Valor médio por pedido</small></article>
-          </section>
-
-          <section class="panel entry-panel" id="entry-form" aria-labelledby="entry-title">
-            <div class="panel-header">
-              <div>
-                <h2 id="entry-title">Novo pedido de venda</h2>
-                <p>Ao salvar, o pedido aparece automaticamente como Ordem de Produção pendente.</p>
-                <span class="editing-indicator" id="editingIndicator" hidden>✎ Editando Pedido #<span id="editingOrderNumber">1</span></span>
-              </div>
-              <span class="form-status" id="formStatus" role="status"></span>
+            <div>
+              <p class="eyebrow">SETOR COMERCIAL</p>
+              <h1>Vendas e Clientes <span>✦</span></h1>
+              <p class="subtitle">Gerencie o setor comercial, realize novos pedidos ou consulte o histórico.</p>
             </div>
-            <form id="saleForm" class="entry-form sale-form">
-              <!-- DADOS GERAIS DO PEDIDO -->
-              <label>Cliente<input id="cliente" name="cliente" type="text" placeholder="Nome do cliente" required maxlength="60"></label>
-              <label>Telefone / Contato<input id="telefone" name="telefone" type="text" placeholder="(00) 00000-0000"></label>
-              <label>Data de Entrega do Material<input type="date" id="dataEntrega" name="dataEntrega" required></label>
-
-              <div class="material-divider"><span>🧵 Materiais do Pedido</span><small>Preencha os dados abaixo e clique em "Adicionar Material" para incluir no carrinho.</small></div>
-
-              <!-- CAMPOS DO MATERIAL (são limpos após adicionar ao carrinho) -->
-              <label>Descrição do Material<input id="modelo" name="modelo" type="text" placeholder="Ex: Blusa canelada" required maxlength="60"></label>
-              <label>Cor<input id="cor" name="cor" type="text" placeholder="Ex: Vinho" required maxlength="40"></label>
-              <label>Grade / Tamanhos<input id="gradeTamanhos" name="gradeTamanhos" type="hidden"></label>
-              <div class="grade-container">
-                <div class="grade-header"><span>📐 Grade de Tamanhos</span><div class="grade-adder"><input type="text" id="novoTamanhoNome" placeholder="Ex: XGG, EG, 2..." maxlength="10"><button type="button" id="adicionarTamanhoBtn" class="grade-add-btn">+</button></div></div>
-                <div class="grade-inputs" id="gradeInputs">
-                  <div class="grade-item">
-                    <label class="grade-label">PP</label>
-                    <input type="number" class="grade-qty" data-tamanho="PP" min="0" step="1" value="" placeholder="0">
-                  </div>
-                  <div class="grade-item">
-                    <label class="grade-label">P</label>
-                    <input type="number" class="grade-qty" data-tamanho="P" min="0" step="1" value="" placeholder="0">
-                  </div>
-                  <div class="grade-item">
-                    <label class="grade-label">M</label>
-                    <input type="number" class="grade-qty" data-tamanho="M" min="0" step="1" value="" placeholder="0">
-                  </div>
-                  <div class="grade-item">
-                    <label class="grade-label">G</label>
-                    <input type="number" class="grade-qty" data-tamanho="G" min="0" step="1" value="" placeholder="0">
-                  </div>
-                  <div class="grade-item">
-                    <label class="grade-label">GG</label>
-                    <input type="number" class="grade-qty" data-tamanho="GG" min="0" step="1" value="" placeholder="0">
-                  </div>
-                  <div class="grade-item">
-                    <label class="grade-label">XG</label>
-                    <input type="number" class="grade-qty" data-tamanho="XG" min="0" step="1" value="" placeholder="0">
-                  </div>
-                  <div class="grade-item">
-                    <label class="grade-label">XXG</label>
-                    <input type="number" class="grade-qty" data-tamanho="XXG" min="0" step="1" value="" placeholder="0">
-                  </div>
-                  <div class="grade-item">
-                    <label class="grade-label">XXXG</label>
-                    <input type="number" class="grade-qty" data-tamanho="XXXG" min="0" step="1" value="" placeholder="0">
+            <div class="header-actions">
+              <div class="sub-tabs-container" style="display: flex; gap: 8px; background: var(--panel-bg); padding: 6px; border-radius: 8px; border: 1px solid var(--border);">
+                <button type="button" class="sub-tab-btn active" id="subTabNovaVenda" onclick="alternarSubAbaVendas('nova-venda')" style="padding: 8px 16px; background: #0d9488; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s;">💰 Novo Pedido</button>
+                <button type="button" class="sub-tab-btn" id="subTabHistorico" onclick="alternarSubAbaVendas('historico')" style="padding: 8px 16px; background: transparent; color: var(--text-muted); border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s;">📋 Histórico de Vendas</button>
+                <div class="order-search-box">
+                  <span class="order-search-title">BUSCAR PEDIDO</span>
+                  <div class="order-search-controls">
+                    <label class="sales-search" for="salesOrderSearch"><span>⌕</span><input id="salesOrderSearch" type="search" inputmode="numeric" autocomplete="off" placeholder="Digite o número" aria-label="Procurar pelo número do pedido"></label>
+                    <button type="button" class="search-clear-button" id="clearSalesSearch" title="Limpar busca" aria-label="Limpar busca" hidden>×</button>
                   </div>
                 </div>
               </div>
-              <div class="total-qty-wrapper">
-                <label>Quantidade deste Material<strong id="quantidadeTotalDisplay">0</strong></label>
-                <input type="hidden" id="quantidade" name="quantidade" value="0">
-              </div>
-              <label>Preço unitário (R$)<input id="precoUnitario" name="precoUnitario" type="number" min="0.01" step="0.01" placeholder="0,00" required></label>
-              <label class="file-label">Foto do Modelo/Peça
-                <span class="file-wrapper">
-                  <input type="file" id="fotoPeca" accept="image/*">
-                  <span class="file-fake">📷 Clique para selecionar</span>
-                </span>
-              </label>
-              <div id="preview-container">
-                <img id="thumbnail-preview" src="" alt="Preview da Peça">
-              </div>
-
-              <button type="button" class="secondary-button" id="btn-adicionar-item"><span>＋</span> Adicionar Material ao Pedido</button>
-
-              <!-- TABELA TEMPORÁRIA DE ITENS DO CARRINHO -->
-              <div class="cart-items-wrapper" id="cartItemsWrapper" hidden>
-                <div class="cart-header"><h3>📦 Materiais adicionados</h3><span id="cartCount">0 itens</span></div>
-                <div class="table-wrap">
-                  <table class="cart-table" id="cartTable">
-                    <thead><tr><th>DESCRIÇÃO</th><th>COR</th><th>GRADE</th><th>QTD</th><th>PREÇO UNIT.</th><th>SUBTOTAL</th><th>FOTO</th><th></th></tr></thead>
-                    <tbody id="cartBody"></tbody>
-                  </table>
-                </div>
-                <p class="cart-empty" id="cartEmptyState">Nenhum material adicionado ainda.</p>
-              </div>
-
-              <!-- Campos financeiros agrupados -->
-              <div class="financial-fields">
-                <label>Desconto (R$)<input id="descontoReais" name="descontoReais" type="number" min="0" step="0.01" placeholder="0,00"></label>
-                <label>Desconto (%)<input id="descontoPercent" name="descontoPercent" type="number" min="0" max="100" step="0.01" placeholder="0"></label>
-                <label>Valor da Entrada (R$)<input id="valorEntrada" name="valorEntrada" type="number" min="0" step="0.01" placeholder="0,00"></label>
-                <label>Forma de Pagamento<select id="formaPagamento" name="formaPagamento">
-                  <option value="pix">PIX</option>
-                  <option value="avista">À Vista</option>
-                  <option value="debito-credito">Débito/Crédito</option>
-                  <option value="faturado">Faturado 15/30 dias</option>
-                </select></label>
-              </div>
-              <label>Observações<input id="observacoes" name="observacoes" type="text" placeholder="Ex: Sem etiquetas, linha vermelha" maxlength="150"></label>
-              <label>Valor total (R$)<input id="valorTotalPreview" type="text" value="R$ 0,00" readonly></label>
-              <!-- Resumo financeiro em tempo real -->
-              <div class="calc-summary">
-                <div class="calc-item"><span class="calc-label">Subtotal (itens)</span><strong class="calc-value" id="calcSubtotal">R$ 0,00</strong></div>
-                <div class="calc-item"><span class="calc-label">Desconto</span><strong class="calc-value" id="calcDesconto">R$ 0,00</strong></div>
-                <div class="calc-item highlight"><span class="calc-label">Total Final</span><strong class="calc-value" id="calcTotalFinal">R$ 0,00</strong></div>
-                <div class="calc-item"><span class="calc-label">Entrada</span><strong class="calc-value" id="calcEntrada">R$ 0,00</strong></div>
-                <div class="calc-item"><span class="calc-label">Faltante</span><strong class="calc-value" id="calcFaltante">R$ 0,00</strong></div>
-                <div class="calc-item"><span class="calc-label">Status</span><strong class="calc-value" id="calcStatus">—</strong></div>
-              </div>
-              <button type="button" class="primary-button" id="btn-finalizar-venda"><span id="btnFinalizarLabel">✓ Finalizar e Salvar Venda</span></button>
-            </form>
-          </section>
-
-          <section class="panel">
-            <div class="panel-header"><div><h2>Histórico de vendas</h2><p>Somente a administração visualiza preços e valores</p></div><span class="entry-count" id="salesCount">0 vendas</span></div>
-            <div class="table-wrap">
-              <table>
-                <thead><tr><th>CLIENTE</th><th>DESCRIÇÃO</th><th>COR</th><th>GRADE</th><th>QTD</th><th>PREÇO UNIT.</th><th>DESCONTO</th><th class="align-right">VALOR FINAL</th><th>FORMA PAG.</th><th>FALTANTE</th><th>VISUAL</th><th>STATUS</th><th></th></tr></thead>
-                <tbody id="salesBody"></tbody>
-              </table>
-              <p class="empty-state" id="salesEmptyState">Nenhuma venda registrada ainda. Adicione o primeiro pedido acima.</p>
             </div>
           </section>
+
+          <!-- SUB-ABA A: FORMULÁRIO DE CADASTRO -->
+          <div id="subcontent-nova-venda">
+            <div style="text-align: right; margin-bottom: 15px;">
+              <button class="primary-button" id="newSaleButton"><span>＋</span> Novo pedido de venda</button>
+            </div>
+            
+            <section class="panel entry-panel" id="entry-form" aria-labelledby="entry-title" hidden>
+              <div class="panel-header">
+                <div>
+                  <h2 id="entry-title">Novo pedido de venda</h2>
+                  <p>Ao salvar, o pedido aparece automaticamente como Ordem de Produção pendente.</p>
+                  <span class="editing-indicator" id="editingIndicator" hidden>✎ Editando Pedido #<span id="editingOrderNumber">1</span></span>
+                </div>
+                <span class="form-status" id="formStatus" role="status"></span>
+              </div>
+              <form id="saleForm" class="entry-form sale-form">
+                <label>Cliente<input id="cliente" name="cliente" type="text" placeholder="Nome do cliente" required maxlength="60"></label>
+                <label>Telefone / Contato<input id="telefone" name="telefone" type="text" placeholder="(00) 00000-0000"></label>
+                <label>Data de Entrega do Material<input type="date" id="dataEntrega" name="dataEntrega" required></label>
+
+                <div class="material-divider"><span>🧵 Materiais do Pedido</span><small>Preencha os dados abaixo e clique em "Adicionar Material" para incluir no carrinho.</small></div>
+                <!-- CAMPOS DO MATERIAL -->
+                <label>Descrição do Material<input id="modelo" name="modelo" type="text" placeholder="Ex: Blusa canelada" required maxlength="60"></label>
+                <label>Cor<input id="cor" name="cor" type="text" placeholder="Ex: Vinho" required maxlength="40"></label>
+                <label>Grade / Tamanhos<input id="gradeTamanhos" name="gradeTamanhos" type="hidden"></label>
+                <div class="grade-container">
+                  <div class="grade-header"><span>📐 Grade de Tamanhos</span><div class="grade-adder"><input type="text" id="novoTamanhoNome" placeholder="Ex: XGG, EG, 2..." maxlength="10"><button type="button" id="adicionarTamanhoBtn" class="grade-add-btn">+</button></div></div>
+                  <div class="grade-inputs" id="gradeInputs">
+                    <div class="grade-item"><label class="grade-label">PP</label><input type="number" class="grade-qty" data-tamanho="PP" min="0" step="1" value="" placeholder="0"></div>
+                    <div class="grade-item"><label class="grade-label">P</label><input type="number" class="grade-qty" data-tamanho="P" min="0" step="1" value="" placeholder="0"></div>
+                    <div class="grade-item"><label class="grade-label">M</label><input type="number" class="grade-qty" data-tamanho="M" min="0" step="1" value="" placeholder="0"></div>
+                    <div class="grade-item"><label class="grade-label">G</label><input type="number" class="grade-qty" data-tamanho="G" min="0" step="1" value="" placeholder="0"></div>
+                    <div class="grade-item"><label class="grade-label">GG</label><input type="number" class="grade-qty" data-tamanho="GG" min="0" step="1" value="" placeholder="0"></div>
+                    <div class="grade-item"><label class="grade-label">XG</label><input type="number" class="grade-qty" data-tamanho="XG" min="0" step="1" value="" placeholder="0"></div>
+                    <div class="grade-item"><label class="grade-label">XXG</label><input type="number" class="grade-qty" data-tamanho="XXG" min="0" step="1" value="" placeholder="0"></div>
+                    <div class="grade-item"><label class="grade-label">XXXG</label><input type="number" class="grade-qty" data-tamanho="XXXG" min="0" step="1" value="" placeholder="0"></div>
+                  </div>
+                </div>
+                <div class="total-qty-wrapper">
+                  <label>Quantidade deste Material<strong id="quantidadeTotalDisplay">0</strong></label>
+                  <input type="hidden" id="quantidade" name="quantidade" value="0">
+                </div>
+                <label>Preço unitário (R$)<input id="precoUnitario" name="precoUnitario" type="number" min="0.01" step="0.01" placeholder="0,00" required></label>
+                <label class="file-label">Foto do Modelo/Peça
+                  <span class="file-wrapper">
+                    <input type="file" id="fotoPeca" accept="image/*">
+                    <span class="file-fake">📷 Clique para selecionar</span>
+                  </span>
+                </label>
+                <div id="preview-container">
+                  <img id="thumbnail-preview" alt="Preview da peça">
+                </div>
+
+                <button type="button" class="secondary-button" id="btn-adicionar-item"><span>＋</span> Adicionar Material ao Pedido</button>
+
+                <!-- TABELA TEMPORÁRIA DE ITENS DO CARRINHO -->
+                <div class="cart-items-wrapper" id="cartItemsWrapper" hidden>
+                  <div class="cart-header"><h3>📦 Materiais adicionados</h3><span id="cartCount">0 itens</span></div>
+                  <div class="table-wrap">
+                    <table class="cart-table" id="cartTable">
+                      <thead><tr><th>DESCRIÇÃO</th><th>COR</th><th>GRADE</th><th>QTD</th><th>PREÇO UNIT.</th><th>SUBTOTAL</th><th>FOTO</th><th></th></tr></thead>
+                      <tbody id="cartBody"></tbody>
+                    </table>
+                  </div>
+                  <p class="cart-empty" id="cartEmptyState">Nenhum material adicionado ainda.</p>
+                </div>
+
+                <!-- Campos financeiros agrupados -->
+                <div class="financial-fields">
+                  <label>Descrição do Serviço Extra<input id="servicoExtraDescricao" name="servicoExtraDescricao" type="text" placeholder="Ex: Aplicação de bordado" maxlength="100"></label>
+                  <label>Valor do Serviço Extra (R$)<input id="servicoExtraValor" name="servicoExtraValor" type="number" min="0" step="0.01" placeholder="0,00"></label>
+                  <label>Desconto (R$)<input id="descontoReais" name="descontoReais" type="number" min="0" step="0.01" placeholder="0,00"></label>
+                  <label>Desconto (%)<input id="descontoPercent" name="descontoPercent" type="number" min="0" max="100" step="0.01" placeholder="0"></label>
+                  <label>Valor da Entrada (R$)<input id="valorEntrada" name="valorEntrada" type="number" min="0" step="0.01" placeholder="0,00"></label>
+                  <label>Forma de Pagamento<select id="formaPagamento" name="formaPagamento">
+                    <option value="pix">PIX</option>
+                    <option value="avista">À Vista</option>
+                    <option value="debito-credito">Débito/Crédito</option>
+                    <option value="faturado">Faturado 15/30 dias</option>
+                  </select></label>
+                </div>
+                <label>Observações<input id="observacoes" name="observacoes" type="text" placeholder="Ex: Sem etiquetas, linha vermelha" maxlength="150"></label>
+                <label>Valor total (R$)<input id="valorTotalPreview" type="text" value="R$ 0,00" readonly></label>
+                
+                <!-- Resumo financeiro em tempo real -->
+                <div class="calc-summary">
+                  <div class="calc-item"><span class="calc-label">Subtotal (itens)</span><strong class="calc-value" id="calcSubtotal">R$ 0,00</strong></div>
+                  <div class="calc-item service-extra"><span class="calc-label">Serviço extra</span><strong class="calc-value" id="calcServicoExtra">R$ 0,00</strong></div>
+                  <div class="calc-item"><span class="calc-label">Desconto</span><strong class="calc-value" id="calcDesconto">R$ 0,00</strong></div>
+                  <div class="calc-item highlight"><span class="calc-label">Total Final</span><strong class="calc-value" id="calcTotalFinal">R$ 0,00</strong></div>
+                  <div class="calc-item"><span class="calc-label">Entrada</span><strong class="calc-value" id="calcEntrada">R$ 0,00</strong></div>
+                  <div class="calc-item"><span class="calc-label">Faltante</span><strong class="calc-value" id="calcFaltante">R$ 0,00</strong></div>
+                  <div class="calc-item"><span class="calc-label">Status</span><strong class="calc-value" id="calcStatus">—</strong></div>
+                </div>
+                <button type="button" class="primary-button" id="btn-finalizar-venda"><span id="btnFinalizarLabel">✓ Finalizar e Salvar Venda</span></button>
+              </form>
+            </section>
+          </div>
+          <!-- SUB-ABA B: HISTÓRICO DE VENDAS -->
+          <div id="subcontent-historico" style="display: none;">
+            <section class="panel">
+              <div class="panel-header"><div><h2>Histórico de vendas</h2><p>Somente a administração visualiza preços e valores</p></div><span class="entry-count" id="salesCount">0 vendas</span></div>
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>PEDIDO</th><th>CLIENTE</th><th>DESCRIÇÃO</th><th>COR</th><th>GRADE</th><th>QTD</th><th>PREÇO UNIT.</th><th>DESCONTO</th><th>SERVIÇO EXTRA</th><th class="align-right">VALOR FINAL</th><th>FORMA PAG.</th><th>FALTANTE</th><th>VISUAL</th><th>STATUS</th><th></th></tr></thead>
+                  <tbody id="salesBody"></tbody>
+                </table>
+                <p class="empty-state" id="salesEmptyState">Nenhuma venda registrada ainda. Adicione o primeiro pedido acima.</p>
+              </div>
+            </section>
+          </div>
         </section>
+
         <!-- ABA 2 - ORDENS DE PRODUÇÃO -->
         <section class="tab-panel" id="tab-producao" hidden>
           <section class="welcome-row">
-            <div><p class="eyebrow">SETOR DE FÁBRICA</p><h1>📋 Ordens de Produção <span>✦</span></h1><p class="subtitle">Lista de pedidos gerados no Comercial — apenas cliente, modelo, cor, observações e quantidades. Sem valores financeiros.</p></div>
+            <div><p class="eyebrow">SETOR DE FÁBRICA</p><h1>Ordens de Produção <span>✦</span></h1><p class="subtitle">Lista de pedidos gerados no Comercial — apenas cliente, modelo, cor, observações e quantidades. Sem valores financeiros.</p></div>
           </section>
 
           <section class="metric-grid">
@@ -219,10 +217,11 @@ c<!DOCTYPE html>
             </div>
           </section>
         </section>
+
         <!-- ABA 3 - ESTOQUE DE INSUMOS -->
         <section class="tab-panel" id="tab-estoque" hidden>
           <section class="welcome-row">
-            <div><p class="eyebrow">CONTROLE DE INSUMOS</p><h1>📦 Estoque de Insumos <span>✦</span></h1><p class="subtitle">Cadastro e controle de quilos de fios, linhas e botões disponíveis.</p></div>
+            <div><p class="eyebrow">CONTROLE DE INSUMOS</p><h1>Estoque de Insumos <span>✦</span></h1><p class="subtitle">Cadastro e controle de quilos de fios, linhas e botões disponíveis.</p></div>
           </section>
 
           <section class="panel entry-panel">
@@ -256,118 +255,52 @@ c<!DOCTYPE html>
             </div>
           </section>
         </section>
+
         <!-- ABA 4 - RELATÓRIOS -->
         <section class="tab-panel" id="tab-relatorios">
           <section class="welcome-row">
             <div>
               <p class="eyebrow">PAINEL PRINCIPAL</p>
-              <h1>📊 Dashboard do Ateliê <span>✦</span></h1>
+              <h1>Dashboard do Ateliê <span>✦</span></h1>
               <p class="subtitle">Indicadores gerais de faturamento, produção e evolução diária das vendas.</p>
             </div>
           </section>
 
+          <!-- Métricas financeiras unificadas no Painel Principal -->
+          <section class="metric-grid">
+            <article class="metric-card"><span class="metric-label">Faturamento total</span><strong id="metricFaturamento">R$ 0,00</strong><small class="metric-hint">Soma de todas as vendas registradas</small></article>
+            <article class="metric-card"><span class="metric-label">Pedidos registrados</span><strong id="metricPedidos">0</strong><small class="metric-hint">Total de vendas no sistema</small></article>
+            <article class="metric-card"><span class="metric-label">Ticket médio</span><strong id="metricTicket">R$ 0,00</strong><small class="metric-hint">Valor médio por pedido</small></article>
+          </section>
+
           <!-- Cards destacados - Produção -->
           <section class="dashboard-highlight-cards">
-            <article class="highlight-card" id="cardAguardando">
-              <span class="highlight-icon">🕒</span>
-              <div class="highlight-body">
-                <span class="highlight-label">Aguardando Aprovação</span>
-                <strong class="highlight-number" id="dashAguardando">0</strong>
-                <small class="highlight-hint">Peças de pedidos pendentes</small>
-              </div>
-            </article>
-            <article class="highlight-card" id="cardAprovados">
-              <span class="highlight-icon">✅</span>
-              <div class="highlight-body">
-                <span class="highlight-label">Aprovados</span>
-                <strong class="highlight-number" id="dashAprovados">0</strong>
-                <small class="highlight-hint">Peças de pedidos aprovados</small>
-              </div>
-            </article>
-            <article class="highlight-card" id="cardEmProducao">
-              <span class="highlight-icon">🧵</span>
-              <div class="highlight-body">
-                <span class="highlight-label">Em Produção</span>
-                <strong class="highlight-number" id="dashEmProducao">0</strong>
-                <small class="highlight-hint">Peças em fabricação no momento</small>
-              </div>
-            </article>
-            <article class="highlight-card" id="cardConcluidos">
-              <span class="highlight-icon">✅</span>
-              <div class="highlight-body">
-                <span class="highlight-label">Pedidos Concluídos</span>
-                <strong class="highlight-number" id="dashConcluidos">0</strong>
-                <small class="highlight-hint">Peças de pedidos finalizados</small>
-              </div>
-            </article>
+            <article class="highlight-card" id="cardAguardando"><span class="highlight-icon">🕒</span><div class="highlight-body"><span class="highlight-label">Aguardando Aprovação</span><strong class="highlight-number" id="dashAguardando">0</strong><small class="highlight-hint">Peças de pedidos pendentes</small></div></article>
+            <article class="highlight-card" id="cardAprovados"><span class="highlight-icon">✅</span><div class="highlight-body"><span class="highlight-label">Aprovados</span><strong class="highlight-number" id="dashAprovados">0</strong><small class="highlight-hint">Peças de pedidos aprovados</small></div></article>
+            <article class="highlight-card" id="cardEmProducao"><span class="highlight-icon">🧵</span><div class="highlight-body"><span class="highlight-label">Em Produção</span><strong class="highlight-number" id="dashEmProducao">0</strong><small class="highlight-hint">Peças em fabricação no momento</small></div></article>
+            <article class="highlight-card" id="cardConcluidos"><span class="highlight-icon">✅</span><div class="highlight-body"><span class="highlight-label">Pedidos Concluídos</span><strong class="highlight-number" id="dashConcluidos">0</strong><small class="highlight-hint">Peças de pedidos finalizados</small></div></article>
           </section>
 
           <!-- Gráfico de Faturamento Diário -->
           <section class="panel chart-panel">
-            <div class="panel-header">
-              <div>
-                <h2>📈 Faturamento Diário do Mês</h2>
-                <p>Evolução do valor faturado por dia no período atual.</p>
-              </div>
-              <span class="entry-count" id="dailyRevenueMonthLabel">Mês atual</span>
-            </div>
-            <div class="chart-canvas-wrapper">
-              <canvas id="graficoFaturamentoDiario"></canvas>
-            </div>
+            <div class="panel-header"><div><h2>Faturamento diário do mês</h2><p>Evolução do valor faturado por dia no período atual.</p></div><span class="entry-count" id="dailyRevenueMonthLabel">Mês atual</span></div>
+            <div class="chart-canvas-wrapper"><canvas id="graficoFaturamentoDiario"></canvas></div>
             <p class="empty-state" id="dailyRevenueEmpty" hidden>Nenhuma venda registrada neste mês.</p>
           </section>
 
           <!-- Card de Faturamento Total abaixo do gráfico -->
           <section class="dashboard-highlight-cards single-card">
-            <article class="highlight-card" id="cardFaturamento">
-              <span class="highlight-icon">💰</span>
-              <div class="highlight-body">
-                <span class="highlight-label">Faturamento Total</span>
-                <strong class="highlight-number" id="dashFaturamentoTotal">R$ 0,00</strong>
-                <small class="highlight-hint">Soma de todas as vendas registradas</small>
-              </div>
-            </article>
+            <article class="highlight-card" id="cardFaturamento"><span class="highlight-icon">💰</span><div class="highlight-body"><span class="highlight-label">Faturamento Total</span><strong class="highlight-number" id="dashFaturamentoTotal">R$ 0,00</strong><small class="highlight-hint">Soma de todas as vendas registradas</small></div></article>
           </section>
 
           <div class="dashboard-charts-grid">
             <!-- Progresso de Produção (CSS Progress Bars) -->
             <section class="panel">
-              <div class="panel-header">
-                <div>
-                  <h2>Distribuição da Produção</h2>
-                  <p>Progresso das ordens de fabricação por status.</p>
-                </div>
-              </div>
+              <div class="panel-header"><div><h2>Distribuição da Produção</h2><p>Progresso das ordens de fabricação por status.</p></div></div>
               <div class="charts-container">
-                <div class="progress-bar-group">
-                  <div class="progress-info">
-                    <span>Aprovados</span>
-                    <strong id="pctPendenteVal">0% (0 peças)</strong>
-                  </div>
-                  <div class="progress-track">
-                    <div class="progress-fill bg-pending" id="pctPendenteBar" style="width: 0%"></div>
-                  </div>
-                </div>
-
-                <div class="progress-bar-group">
-                  <div class="progress-info">
-                    <span>Em Produção</span>
-                    <strong id="pctProducaoVal">0% (0 peças)</strong>
-                  </div>
-                  <div class="progress-track">
-                    <div class="progress-fill bg-progress" id="pctProducaoBar" style="width: 0%"></div>
-                  </div>
-                </div>
-
-                <div class="progress-bar-group">
-                  <div class="progress-info">
-                    <span>Concluídas</span>
-                    <strong id="pctConcluidoVal">0% (0 peças)</strong>
-                  </div>
-                  <div class="progress-track">
-                    <div class="progress-fill bg-completed" id="pctConcluidoBar" style="width: 0%"></div>
-                  </div>
-                </div>
+                <div class="progress-bar-group"><div class="progress-info"><span>Aprovados</span><strong id="pctPendenteVal">0% (0 peças)</strong></div><div class="progress-track"><div class="progress-fill bg-pending" id="pctPendenteBar" style="width: 0%"></div></div></div>
+                <div class="progress-bar-group"><div class="progress-info"><span>Em Produção</span><strong id="pctProducaoVal">0% (0 peças)</strong></div><div class="progress-track"><div class="progress-fill bg-progress" id="pctProducaoBar" style="width: 0%"></div></div></div>
+                <div class="progress-bar-group"><div class="progress-info"><span>Concluídas</span><strong id="pctConcluidoVal">0% (0 peças)</strong></div><div class="progress-track"><div class="progress-fill bg-completed" id="pctConcluidoBar" style="width: 0%"></div></div></div>
               </div>
             </section>
 
@@ -380,9 +313,7 @@ c<!DOCTYPE html>
                 </div>
               </div>
               <div class="alerts-list-container">
-                <div id="alertsStockList" class="alerts-stock-list">
-                  <!-- Gerado via script.js -->
-                </div>
+                <div id="alertsStockList" class="alerts-stock-list"></div>
                 <p class="empty-state text-success" id="alertsStockEmpty">✅ Excelente! Todos os insumos estão acima do estoque mínimo.</p>
               </div>
             </section>
@@ -393,9 +324,7 @@ c<!DOCTYPE html>
     </main>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
-
-

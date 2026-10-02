@@ -1,0 +1,285 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   SEVEN PEDIDOS ESCOLARES — DESIGN SYSTEM FOUNDATION
+   Passo 2: Design tokens globais. Mobile-first. Sem alteração funcional.
+   Inter + Outfit já carregadas em index.html — sem reimportar aqui.
+   ========================================================================== */
+
+@layer base {
+
+  /* --------------------------------------------------------------------------
+     DESIGN TOKENS — variáveis CSS do sistema visual Seven
+     Uso futuro: var(--brand-primary), var(--color-success), etc.
+     Compatíveis com as classes Tailwind existentes (não as substituem).
+  -------------------------------------------------------------------------- */
+  :root {
+    /* --- Legado (mantidos para compatibilidade com código existente) ------- */
+    --brand-primary: #0F172A;
+    --brand-secondary: #0284C7;
+    --brand-accent: #F59E0B;
+    --brand-success: #10B981;
+    --brand-danger: #EF4444;
+
+    /* --- Brand — Nova Paleta ----------------------------------------------- */
+    --seven-brand-primary:        #2563EB;  /* blue-600 — CTA principal       */
+    --seven-brand-primary-hover:  #1D4ED8;  /* blue-700 — hover do CTA        */
+    --seven-brand-primary-light:  #EFF6FF;  /* blue-50  — fundos de destaque  */
+    --seven-brand-accent:         #F97316;  /* orange-500 — preço, destaque   */
+    --seven-brand-accent-hover:   #EA580C;  /* orange-600 — hover             */
+    --seven-brand-hero:           #1E3A8A;  /* blue-900 — header/hero bg      */
+
+    /* --- Semânticas -------------------------------------------------------- */
+    --seven-color-success:        #10B981;  /* emerald-500 — PAGO, ENTREGUE   */
+    --seven-color-success-bg:     #ECFDF5;  /* emerald-50                     */
+    --seven-color-warning:        #F59E0B;  /* amber-500  — NÃO PAGO, prazo   */
+    --seven-color-warning-bg:     #FFFBEB;  /* amber-50                       */
+    --seven-color-error:          #EF4444;  /* red-500   — erros              */
+    --seven-color-error-bg:       #FEF2F2;  /* red-50                         */
+    --seven-color-info:           #3B82F6;  /* blue-500  — informativo        */
+    --seven-color-info-bg:        #EFF6FF;  /* blue-50                        */
+
+    /* --- Superfícies ------------------------------------------------------- */
+    --seven-surface-page:         #0D9488;  /* teal-600 — fundo geral novo    */
+    --seven-surface-conceito:     #0D9488;  /* teal-600 — fallback idêntico   */
+    --seven-surface-card:         #EEF7F4;  /* teal-gelo — cards públicos     */
+    --seven-surface-input:        #F4FAF8;  /* teal-gelo claro — inputs       */
+    --seven-surface-brand:        #0D9488;  /* teal-600 — cards em destaque   */
+
+    /* --- Bordas ------------------------------------------------------------ */
+    --seven-border-default:       #D1EAE3;  /* teal-100 — borda padrão        */
+    --seven-border-focus:         #0F766E;  /* teal-700 — borda de foco       */
+
+    /* --- Texto ------------------------------------------------------------- */
+    --seven-text-primary:         #0F172A;  /* petroleum/slate-900            */
+    --seven-text-secondary:       #334155;  /* slate-700                      */
+    --seven-text-tertiary:        #64748B;  /* slate-500                      */
+    --seven-text-on-brand:        #FFFFFF;  /* texto sobre fundos fortes      */
+
+    /* --- Border-radius ----------------------------------------------------- */
+    --seven-radius-sm:            8px;      /* inputs pequenos, badges        */
+    --seven-radius-md:            12px;     /* botões, cards internos         */
+    --seven-radius-lg:            16px;     /* cards principais (padrão)      */
+    --seven-radius-xl:            24px;     /* modais, seções de destaque     */
+    --seven-radius-full:          9999px;   /* pills, avatars                 */
+
+    /* --- Sombras ----------------------------------------------------------- */
+    --seven-shadow-xs:  0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --seven-shadow-sm:  0 1px 3px 0 rgba(0, 0, 0, 0.08);
+    --seven-shadow-md:  0 4px 6px -1px rgba(0, 0, 0, 0.07);
+  }
+
+  /* --- Modo Escuro (Dark Mode) -------------------------------------------- */
+  .dark {
+    --seven-surface-page:         #134E4A;  /* teal-900 — fundo geral petróleo */
+    --seven-surface-conceito:     #134E4A;
+    --seven-surface-card:         #0F3F3E;  /* teal-petróleo elevado          */
+    --seven-surface-input:        #115E59;  /* teal-800 — inputs              */
+    --seven-surface-brand:        #115E59;  /* teal-800 — cards em destaque   */
+    --seven-border-default:       #115E59;  /* teal-800 — bordas escuras      */
+    
+    --seven-text-primary:         #F8FAFC;  /* slate-50 — textos pr. brancos  */
+    --seven-text-secondary:       #CBD5E1;  /* slate-300 — texto secundário   */
+    --seven-text-tertiary:        #94A3B8;  /* slate-400 — texto terciário    */
+    --seven-text-on-brand:        #FFFFFF;
+  }
+
+  /* --------------------------------------------------------------------------
+     BODY — mantém configuração existente + font-family centralizada
+  -------------------------------------------------------------------------- */
+  body {
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont,
+                 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    color: #1E293B;
+    background-color: #F8FAFC;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    margin: 0;
+    padding: 0;
+    /* Previne overflow horizontal acidental em viewports estreitas */
+    overflow-x: hidden;
+  }
+
+  #root {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* --------------------------------------------------------------------------
+     BOX-SIZING — comportamento consistente globalmente
+     Safe: não altera layout existente pois box-border é o padrão Tailwind.
+  -------------------------------------------------------------------------- */
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  /* --------------------------------------------------------------------------
+     IMAGENS E MÍDIA — impede overflow horizontal sem alterar layouts
+     Safe: apenas limita max-width, não altera display/flex existentes.
+  -------------------------------------------------------------------------- */
+  img, video, svg {
+    max-width: 100%;
+  }
+
+  /* --------------------------------------------------------------------------
+     ACESSIBILIDADE — focus-visible global
+     Safe: só afeta teclado/navegação, não muda aparência para mouse.
+     Não sobrescreve focus:ring-* já aplicado via Tailwind nos componentes.
+  -------------------------------------------------------------------------- */
+  :focus-visible {
+    outline: 2px solid var(--seven-border-focus);
+    outline-offset: 2px;
+  }
+
+  /* --------------------------------------------------------------------------
+     REDUCED MOTION — respeita preferência do sistema operacional
+     Safe: só desativa transições para usuários que solicitaram isso.
+     Animações existentes (spin de loading) são mantidas para usuários normais.
+  -------------------------------------------------------------------------- */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* ==========================================================================
+   UTILITÁRIO DE FONTE — Outfit para títulos
+   Cria a classe .font-display para uso progressivo nos novos componentes.
+   NÃO altera os font-['Outfit'] já existentes — apenas oferece alternativa.
+   ========================================================================== */
+.font-display {
+  font-family: 'Outfit', system-ui, sans-serif;
+}
+
+/* ==========================================================================
+   SPLASH SCREEN ANIMATION
+   ========================================================================== */
+@keyframes splashCinematic {
+  0% {
+    transform: scale(0.58);
+    opacity: 0;
+    filter: blur(10px);
+    animation-timing-function: ease-out;
+  }
+  13.33% { /* 0.8s */
+    transform: scale(0.68);
+    opacity: 0.45;
+    filter: blur(6px);
+    animation-timing-function: linear;
+  }
+  30% { /* 1.8s */
+    transform: scale(0.85);
+    opacity: 0.85;
+    filter: blur(2px);
+    animation-timing-function: ease-out;
+  }
+  45% { /* 2.7s */
+    transform: scale(1);
+    opacity: 1;
+    filter: blur(0);
+    animation-timing-function: linear;
+  }
+  60% { /* 3.6s */
+    transform: scale(1.05);
+    opacity: 1;
+    filter: blur(0);
+    animation-timing-function: linear;
+  }
+  71.67% { /* 4.3s */
+    transform: scale(1.1);
+    opacity: 1;
+    filter: blur(0);
+    animation-timing-function: ease-in;
+  }
+  100% { /* 6.0s */
+    transform: scale(1.50);
+    opacity: 0;
+    filter: blur(16px);
+  }
+}
+
+.animate-splash-cinematic {
+  animation: splashCinematic 6s forwards;
+}
+
+/* ==========================================================================
+   SCROLLBAR CUSTOMIZADA — mantida idêntica ao original
+   ========================================================================== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #F1F5F9;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* ==========================================================================
+   PRINT — mantido idêntico ao original
+   ========================================================================== */
+@media print {
+  body {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+    font-size: 11pt !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  .print-break-inside-avoid {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .print-break-before {
+    break-before: page;
+    page-break-before: always;
+  }
+
+  .shadow-sm, .shadow-md, .shadow-lg, .shadow-xl {
+    box-shadow: none !important;
+  }
+}
+
+/* ==========================================================================
+   CATALOG ENTRANCE ANIMATION
+   ========================================================================== */
+@keyframes catalogFadeUp {
+  0% {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-catalog-fade-up {
+  animation: catalogFadeUp 550ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-catalog-fade-up {
+    animation-delay: 0ms !important;
+    animation-duration: 0.01ms !important;
+    transform: none !important;
+  }
+}

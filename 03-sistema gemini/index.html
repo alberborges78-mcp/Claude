@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Gestão - Malharia</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Cabeçalho Principal -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo-icon">🧵</span>
+      <div>
+        <h1>MalhariaOS</h1>
+        <small>Gestão & Confecção</small>
+      </div>
+    </div>
+    <nav class="nav-tabs">
+      <button class="tab-btn active" id="tabVendas">Vendas & Orçamentos</button>
+      <button class="tab-btn" id="tabArte">Arte & Prova</button>
+      <button class="tab-btn disabled" title="Em breve">Produção (PCP)</button>
+      <button class="tab-btn disabled" title="Em breve">Expedição</button>
+    </nav>
+    <div class="user-badge">
+      <span>Atendente Balcão</span>
+    </div>
+  </header>
+
+  <!-- Área Principal -->
+  <main class="container">
+    <!-- Topo da Venda / Busca por Número / Prazos / Status -->
+    <section class="card meta-bar">
+      <!-- Busca por Número do Pedido -->
+      <div class="meta-item order-search-box">
+        <label for="orderSearchInput">Buscar Pedido / Nº</label>
+        <div class="search-inline">
+          <input type="text" id="orderSearchInput" placeholder="Ex: 1042" />
+          <button class="btn btn-secondary btn-sm" id="btnSearchOrder">🔍 Buscar</button>
+          <button class="btn btn-outline btn-sm" id="btnNewOrder" title="Limpar e criar novo">+ Novo</button>
+        </div>
+      </div>
+
+      <div class="meta-item">
+        <label>Nº Atual</label>
+        <span class="order-number" id="orderNumberDisplay">#ORC-1042</span>
+      </div>
+
+      <div class="meta-item">
+        <label for="orderDate">Data de Entrada</label>
+        <input type="date" id="orderDate" readonly />
+      </div>
+
+      <div class="meta-item">
+        <label for="deliveryDate">Data Prevista de Retirada</label>
+        <input type="date" id="deliveryDate" />
+      </div>
+
+      <!-- Caixa para alterar o STATUS -->
+      <div class="meta-item">
+        <label for="statusSelect">Status Atual</label>
+        <div class="status-selector-wrapper">
+          <select id="statusSelect" class="status-dropdown status-orcamento">
+            <option value="orcamento">Orçamento (Aberto)</option>
+            <option value="pedido">Pedido Fechado</option>
+            <option value="arte">Em Arte & Prova</option>
+            <option value="cancelado">Cancelado</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- 1. Identificação do Cliente -->
+    <section class="card client-section">
+      <div class="card-header">
+        <h2>1. Identificação do Cliente</h2>
+        <button class="btn btn-secondary btn-sm" id="btnOpenNewClient">+ Novo Cliente</button>
+      </div>
+      <div class="client-search-box">
+        <div class="input-icon-wrapper">
+          <input type="text" id="clientSearchInput" placeholder="🔍 Buscar por WhatsApp (DDD), Nome ou CPF/CNPJ..." autocomplete="off" />
+          <div id="autocompleteList" class="autocomplete-dropdown hidden"></div>
+        </div>
+      </div>
+      <!-- Resumo do Cliente Selecionado -->
+      <div id="selectedClientCard" class="selected-client hidden">
+        <div class="client-info-grid">
+          <div><strong id="clientCardName">João Silva</strong> (<span id="clientCardDoc">123.456.789-00</span>)</div>
+          <div>📱 WhatsApp: <span id="clientCardPhone">(96) 98111-2233</span></div>
+          <div>📍 Endereço Cadastro: <span id="clientCardAddress">Av. Fab, 1200 - Centro, Macapá - AP</span></div>
+        </div>
+        <button class="btn-link" id="btnClearClient">Trocar cliente</button>
+      </div>
+    </section>
+
+    <!-- 2. Transporte & Logística de Entrega -->
+    <section class="card transport-section">
+      <div class="card-header">
+        <h2>2. Transporte & Logística de Entrega</h2>
+      </div>
+      
+      <div class="transport-type-selector">
+        <label class="transport-option">
+          <input type="radio" name="transportType" value="balcao" checked />
+          <span class="transport-label">🏢 Retirada no Balcão (Sem Frete)</span>
+        </label>
+        <label class="transport-option">
+          <input type="radio" name="transportType" value="externo" />
+          <span class="transport-label">🚚 Envio Externo (Transportadora / Motoboy / Correios)</span>
+        </label>
+      </div>
+
+      <!-- Bloco Condicional de Envio Externo -->
+      <div id="externalShippingBlock" class="external-shipping-block hidden">
+        <div class="form-grid-3">
+          <div class="form-group">
+            <label for="shippingCarrier">Modalidade / Transportadora</label>
+            <input type="text" id="shippingCarrier" placeholder="Ex: Motoboy, Jadlog, Correios SEDEX, Excursão" />
+          </div>
+          <div class="form-group">
+            <label for="shippingTracking">Código / Link de Rastreio (Opcional)</label>
+            <input type="text" id="shippingTracking" placeholder="Ex: BR123456789XP ou Contato do Entregador" />
+          </div>
+          <div class="form-group">
+            <label for="shippingCostInput">Valor do Frete (R$)</label>
+            <input type="number" step="0.01" min="0" id="shippingCostInput" value="0.00" class="fin-input-bold text-right" />
+          </div>
+        </div>
+
+        <!-- Endereço com opção de puxar do cadastro ou digitar diferente -->
+        <div class="shipping-address-container" style="margin-top: 14px;">
+          <div class="shipping-address-header">
+            <label for="shippingAddress" class="font-bold">Endereço Completo do Destino:</label>
+            <label class="checkbox-different-address">
+              <input type="checkbox" id="chkCustomAddress" />
+              <span>✏️ Entregar em endereço diferente do cadastro</span>
+            </label>
+          </div>
+          <input type="text" id="shippingAddress" placeholder="Aguardando seleção do cliente ou digite o endereço..." readonly class="input-readonly" />
+          <small id="shippingAddressHint" class="address-hint">🔒 Puxado automaticamente do cadastro do cliente.</small>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Layout Visual & Estampas -->
+    <section class="card">
+      <div class="card-header">
+        <h2>3. Layout Visual & Estampas</h2>
+        <button class="btn btn-secondary btn-sm" id="btnAddLayoutItem">+ Adicionar Nova Estampa / Layout</button>
+      </div>
+      <div id="layoutsContainer" class="layouts-container">
+        <!-- Gerado dinamicamente -->
+      </div>
+    </section>
+
+    <!-- 4. Grade de Peças com Tamanhos Dinâmicos -->
+    <section class="card">
+      <div class="card-header">
+        <h2>4. Grade de Produtos & Peças</h2>
+        <button class="btn btn-secondary btn-sm" id="btnAddProduct">+ Adicionar Outro Produto na Grade</button>
+      </div>
+      <div id="productsContainer" class="products-container">
+        <!-- Gerado dinamicamente -->
+      </div>
+      <div class="products-total-bar">
+        <span>Total Geral de Peças no Pedido: <strong id="totalAllPiecesDisplay">0</strong> peças</span>
+      </div>
+    </section>
+
+    <!-- 5. Itens Avulsos / Serviços -->
+    <section class="card">
+      <div class="card-header">
+        <h2>5. Itens Avulsos & Serviços Adicionais</h2>
+        <button class="btn btn-secondary btn-sm" id="btnAddExtraItem">+ Adicionar Item Avulso</button>
+      </div>
+      <table class="data-table" id="extraItemsTable">
+        <thead>
+          <tr>
+            <th>Descrição do Insumo / Serviço</th>
+            <th width="120px" class="text-center">Qtd</th>
+            <th width="150px">Valor Unit. (R$)</th>
+            <th width="150px" class="text-right">Subtotal (R$)</th>
+            <th width="50px"></th>
+          </tr>
+        </thead>
+        <tbody id="extraItemsBody">
+          <!-- Linhas injetadas via JavaScript -->
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Bloco Financeiro e Termos -->
+    <div class="two-columns">
+      <!-- Termos e Condições -->
+      <section class="card">
+        <div class="card-header">
+          <h2>Termos de Aceite & Desistência</h2>
+          <button class="btn-link" id="btnToggleEditTerms">✏️ Editar Termos</button>
+        </div>
+        <textarea id="termsTextArea" class="terms-area" readonly>
+• Em caso de desistência ou cancelamento após aprovação formal, incidirá taxa de retenção de 30% sobre o total.
+• O prazo de confecção acordado inicia apenas após confirmação do sinal e aprovação da prova visual.
+• Tolerância técnica padrão de até 5% nas medidas da grade e sutis variações de tom no tecido.
+        </textarea>
+      </section>
+
+      <!-- Resumo Financeiro com Frete e Formas de Pagamento -->
+      <section class="card financial-card">
+        <h2>Resumo Financeiro</h2>
+        
+        <div class="financial-row">
+          <span>Subtotal Produtos:</span>
+          <span id="finSubtotalProducts">R$ 0,00</span>
+        </div>
+        <div class="financial-row">
+          <span>Subtotal Avulsos:</span>
+          <span id="finSubtotalExtras">R$ 0,00</span>
+        </div>
+        <div class="financial-row font-bold">
+          <span>Subtotal Bruto:</span>
+          <span id="finSubtotalGross">R$ 0,00</span>
+        </div>
+
+        <hr class="divider" />
+
+        <!-- Desconto com Alternador R$ / % -->
+        <div class="discount-wrapper">
+          <label>Desconto:</label>
+          <div class="discount-inputs">
+            <div class="toggle-group">
+              <button class="toggle-btn active" id="btnDiscPerc">%</button>
+              <button class="toggle-btn" id="btnDiscVal">R$</button>
+            </div>
+            <input type="number" step="0.01" min="0" id="discountInput" value="5" class="fin-input" />
+            <span class="calc-hint" id="discountEquivLabel">(- R$ 0,00)</span>
+          </div>
+        </div>
+
+        <!-- Linha do Frete no Financeiro -->
+        <div class="financial-row shipping-row">
+          <span>Frete / Envio:</span>
+          <span id="finShippingCostDisplay">R$ 0,00</span>
+        </div>
+
+        <div class="financial-row total-highlight">
+          <span>Total Líquido:</span>
+          <span id="finTotalLiquid">R$ 0,00</span>
+        </div>
+
+        <hr class="divider" />
+
+        <!-- Múltiplas Formas de Pagamento da Entrada -->
+        <div class="payments-section">
+          <div class="payments-header">
+            <label class="font-bold">Formas de Pagamento (Entrada / Sinal):</label>
+            <div class="quick-btns">
+              <button class="btn-tag" id="btnQuick50">50%</button>
+              <button class="btn-tag" id="btnQuick100">100%</button>
+            </div>
+          </div>
+          
+          <div id="paymentsListContainer" class="payments-list">
+            <!-- Linhas de pagamentos geradas via JS -->
+          </div>
+
+          <button class="btn btn-secondary btn-sm btn-full" id="btnAddPaymentRow">+ Adicionar Forma de Pagamento</button>
+
+          <div class="financial-row total-deposit-row">
+            <span>Total da Entrada Pago:</span>
+            <strong id="finTotalDepositPaid">R$ 0,00</strong>
+          </div>
+        </div>
+
+        <hr class="divider" />
+
+        <div class="financial-row pending-balance">
+          <span>Restante a Pagar:</span>
+          <strong id="finRemainingBalance">R$ 0,00</strong>
+        </div>
+
+        <!-- Ações Finais -->
+        <div class="actions-group-full">
+          <button class="btn btn-action-order" id="btnConvertToOrder">
+            🚀 Converter Orçamento para PEDIDO
+          </button>
+        </div>
+
+        <div class="actions-group">
+          <button class="btn btn-outline" id="btnPrintBtn">🖨️ Imprimir Pedido</button>
+          <button class="btn btn-primary" id="btnApproveOrder">Salvar / Atualizar</button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Modal: Cadastro Rápido de Cliente (Com Endereço Completo do Cadastro) -->
+  <div class="modal-overlay hidden" id="clientModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Cadastro Rápido de Balcão</h3>
+        <button class="btn-close" id="btnCloseModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="newClientName">Nome Completo / Razão Social *</label>
+          <input type="text" id="newClientName" placeholder="Ex.: Marcos Silva Uniformes" required />
+        </div>
+        <div class="form-group">
+          <label for="newClientPhone">WhatsApp / Telefone com DDD *</label>
+          <input type="text" id="newClientPhone" placeholder="(00) 00000-0000" required />
+        </div>
+        <div class="form-group">
+          <label for="newClientDoc">CPF ou CNPJ</label>
+          <input type="text" id="newClientDoc" placeholder="000.000.000-00" />
+        </div>
+        <div class="form-group">
+          <label for="newClientAddress">Endereço Principal do Cliente (Rua, Bairro, Cidade)</label>
+          <input type="text" id="newClientAddress" placeholder="Ex: Av. FAB, 1200 - Centro, Macapá - AP" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" id="btnCancelModal">Cancelar</button>
+        <button class="btn btn-primary" id="btnSaveClient">Salvar e Vincular</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

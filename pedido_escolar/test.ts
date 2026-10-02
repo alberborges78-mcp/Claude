@@ -1,0 +1,1 @@
+import { supabase } from './src/services/supabaseClient'; async function run() { console.log('STORES', await supabase.from('stores').select('*')); console.log('CAMPAIGNS', await supabase.from('campaigns').select('*')); console.log('CLASSES', await supabase.from('classes').select('*')); } run();
