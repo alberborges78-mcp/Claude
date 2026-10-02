@@ -67,7 +67,16 @@ export const AdminQrScannerView: React.FC = () => {
       const stored = sessionStorage.getItem('seven_qr_debug');
       if (stored) setQrDebugSteps(JSON.parse(stored));
     } catch {}
+    addDebugStep('COMPONENT_MOUNT');
+    return () => { addDebugStep('COMPONENT_UNMOUNT'); };
   }, []);
+  // Log render phase (safe: no setState)
+  console.log('[QR_RENDER]', {
+    hasOrder: !!scannedOrder,
+    orderNum: scannedOrder?.order_number,
+    showScanner,
+    scannerMode,
+  });
   useEffect(() => {
     const onError = (e: ErrorEvent) => {
       addDebugStep(`WINDOW_ERROR: ${e.message || e.error?.message || 'unknown'} | stack=${e.error?.stack?.slice(0, 200) || 'none'}`);
@@ -84,8 +93,13 @@ export const AdminQrScannerView: React.FC = () => {
     };
   }, []);
   // Log state transitions for diagnosis
-  useEffect(() => { addDebugStep(`STATE scannedOrder=${scannedOrder ? scannedOrder.order_number : 'null'}`); }, [scannedOrder]);
-  useEffect(() => { addDebugStep(`STATE showScanner=${showScanner}`); }, [showScanner]);
+  useEffect(() => {
+    const val = scannedOrder ? scannedOrder.order_number : 'null';
+    addDebugStep(`SCANNED_ORDER_CHANGED order=${val}`);
+  }, [scannedOrder]);
+  useEffect(() => {
+    addDebugStep(`SHOW_SCANNER_CHANGED value=${showScanner}`);
+  }, [showScanner]);
   useEffect(() => { addDebugStep(`STATE scannerMode=${scannerMode}`); }, [scannerMode]);
   // === END DIAGNOSTIC INSTRUMENTATION ===
 
