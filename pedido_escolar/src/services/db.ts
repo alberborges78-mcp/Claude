@@ -1722,7 +1722,8 @@ class DatabaseService {
     unpaidCount: number;
   }[]> {
     const classes = await this.getClassesByCampaign(campaignId);
-    const orders = this.getOrders({ campaign_id: campaignId });
+    // Use Async version to ensure real data from Supabase
+    const orders = await this.getOrdersAsync({ campaign_id: campaignId });
 
     return classes.map((cls) => {
       let ordersCount = 0;
@@ -1753,6 +1754,61 @@ class DatabaseService {
         unpaidCount,
       };
     });
+  }
+
+  public async getDashboardStatsAsync(campaignId?: string): Promise<{
+    totalOrders: number;
+    totalPieces: number;
+    paidOrders: number;
+    unpaidOrders: number;
+    totalRevenueCents: number;
+    paidRevenueCents: number;
+    pendingRevenueCents: number;
+    deliveredCount: number;
+    pendingDeliveryCount: number;
+  }> {
+    // Use Async version to ensure real data from Supabase
+    const orders = await this.getOrdersAsync(campaignId ? { campaign_id: campaignId } : undefined);
+
+    let totalPieces = 0;
+    let paidOrders = 0;
+    let unpaidOrders = 0;
+    let totalRevenueCents = 0;
+    let paidRevenueCents = 0;
+    let pendingRevenueCents = 0;
+    let deliveredCount = 0;
+    let pendingDeliveryCount = 0;
+
+    for (const order of orders) {
+      totalPieces += order.total_items;
+      totalRevenueCents += order.total_amount_cents;
+
+      if (order.payment_status === 'PAGO') {
+        paidOrders++;
+        paidRevenueCents += order.total_amount_cents;
+      } else {
+        unpaidOrders++;
+        pendingRevenueCents += order.total_amount_cents;
+      }
+
+      if (order.delivery_status === 'ENTREGUE') {
+        deliveredCount++;
+      } else {
+        pendingDeliveryCount++;
+      }
+    }
+
+    return {
+      totalOrders: orders.length,
+      totalPieces,
+      paidOrders,
+      unpaidOrders,
+      totalRevenueCents,
+      paidRevenueCents,
+      pendingRevenueCents,
+      deliveredCount,
+      pendingDeliveryCount,
+    };
   }
 
   public getDashboardStats(campaignId?: string): {
