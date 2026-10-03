@@ -317,7 +317,17 @@ export const AdminQrScannerView: React.FC = () => {
     found = await db.getOrderByQrTokenAsync(clean);
     if (!found) {
       const orders = await db.getOrdersAsync({});
-      found = orders.find(o => o.order_number.toUpperCase() === clean.toUpperCase()) || null;
+      // Normalize abbreviated numeric input (e.g. "40" -> "SEV-2026-0040") for manual search only
+      let normalizedSearch = clean.toUpperCase();
+      if (/^\d{1,4}$/.test(clean)) {
+        normalizedSearch = `SEV-2026-${clean.padStart(4, '0')}`;
+      }
+      const matches = orders.filter(o => o.order_number.toUpperCase() === normalizedSearch);
+      if (matches.length > 1) {
+        console.error(`INTEGRIDADE: Múltiplos pedidos encontrados para ${normalizedSearch}`, matches.map(m => m.id));
+        return null;
+      }
+      found = matches[0] || null;
     }
     return found;
   };
@@ -471,7 +481,7 @@ export const AdminQrScannerView: React.FC = () => {
         <form onSubmit={(e) => { e.preventDefault(); handleSearch(tokenInput); }} className="flex items-center gap-2">
           <div className="relative flex-1">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input type="text" placeholder="Ex: SEV-2026-0035" value={tokenInput} onChange={(e) => setTokenInput(e.target.value)} disabled={isLoading} className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl text-xs sm:text-sm font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:opacity-50" />
+            <input type="text" placeholder="Ex: SEV-2026-0035" value={tokenInput} onChange={(e) => setTokenInput(e.target.value)} disabled={isLoading} className="w-full pl-10 pr-4 py-3 bg-white border border-slate-300 rounded-2xl text-slate-900 text-xs sm:text-sm font-medium placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:opacity-50 caret-slate-900" />
           </div>
           <button type="submit" disabled={isLoading} className="px-6 py-3 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white rounded-2xl font-bold text-xs sm:text-sm shadow transition-all active:scale-95 flex items-center gap-1">
             {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />} Localizar

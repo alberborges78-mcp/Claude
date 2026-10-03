@@ -10,6 +10,7 @@ import {
   ShieldAlert,
   ChevronRight,
   Package,
+  PackageCheck,
   Calendar,
   Phone,
   User,
@@ -85,10 +86,16 @@ export const OrderLookupView: React.FC<OrderLookupViewProps> = ({ onNavigate }) 
     let cleanPhone: string | undefined;
 
     if (activeMode === 'ORDER_NUMBER') {
-      cleanOrderNum = orderNumber.trim();
-      if (!cleanOrderNum) {
+      const rawOrderNum = orderNumber.trim();
+      if (!rawOrderNum) {
         setErrorMessage('Por favor, informe o Número do Pedido.');
         return;
+      }
+      // Normalize abbreviated numeric input (e.g. "40" -> "SEV-2026-0040") for public search
+      if (/^\d{1,4}$/.test(rawOrderNum)) {
+        cleanOrderNum = `SEV-2026-${rawOrderNum.padStart(4, '0')}`;
+      } else {
+        cleanOrderNum = rawOrderNum.toUpperCase();
       }
     } else if (activeMode === 'CUSTOMER_NAME') {
       cleanCustomer = customerName.trim();
@@ -287,6 +294,30 @@ export const OrderLookupView: React.FC<OrderLookupViewProps> = ({ onNavigate }) 
           </div>
         </div>
 
+        {/* Seção de Dados Reais da Retirada (somente quando ENTREGUE) */}
+        {isDelivered && (
+          <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-2xl p-4 sm:p-5 shadow-xs space-y-2">
+            <h2 className="text-sm font-black text-emerald-900 dark:text-emerald-400 uppercase tracking-wider flex items-center gap-2">
+              <PackageCheck className="w-4 h-4" />
+              Retirada
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div>
+                <span className="font-bold text-emerald-800 dark:text-emerald-300 block uppercase tracking-wide mb-0.5">Retirado por</span>
+                <span className="font-medium text-emerald-950 dark:text-emerald-100">{selectedOrder.delivery_recipient_name || 'Não informado'}</span>
+              </div>
+              <div>
+                <span className="font-bold text-emerald-800 dark:text-emerald-300 block uppercase tracking-wide mb-0.5">Retirado em</span>
+                <span className="font-medium text-emerald-950 dark:text-emerald-100">
+                  {selectedOrder.delivered_at
+                    ? new Date(selectedOrder.delivered_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                    : 'Não informado'}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Card de Aviso sobre Retirada (Segurança do QR) */}
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 sm:p-5 flex items-start gap-3.5 text-xs text-amber-900 shadow-xs">
           <ShieldAlert className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
@@ -418,7 +449,7 @@ export const OrderLookupView: React.FC<OrderLookupViewProps> = ({ onNavigate }) 
           </span>
         </div>
 
-        <div className="space-y-1.5">
+        <div className="bg-[var(--seven-surface-card)] border border-[var(--seven-border-default)] rounded-2xl p-5 shadow-xs space-y-1.5">
           <h1 className="text-2xl sm:text-3xl font-black text-[var(--seven-text-primary)] font-display">
             Resultados da Pesquisa
           </h1>
@@ -661,7 +692,7 @@ export const OrderLookupView: React.FC<OrderLookupViewProps> = ({ onNavigate }) 
                 autoFocus
                 value={orderNumber}
                 onChange={(e) => setOrderNumber(e.target.value)}
-                placeholder="Ex: SEV-2026-0030"
+                placeholder="Ex: 0040 ou SEV-2026-0040"
                 className="w-full min-h-[48px] px-4 py-3 bg-[var(--seven-surface-input)] border border-[var(--seven-border-default)] rounded-xl text-sm font-bold text-[var(--seven-text-primary)] placeholder:text-[var(--seven-text-tertiary)] placeholder:font-normal uppercase focus:bg-[var(--seven-surface-card)] focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all font-mono"
               />
               <p className="text-xs text-[var(--seven-text-secondary)]">

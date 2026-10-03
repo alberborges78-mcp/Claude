@@ -1048,6 +1048,8 @@ class DatabaseService {
           payment_status: raw.payment_status || 'NAO_PAGO',
           production_status: raw.production_status || 'PENDENTE',
           delivery_status: raw.delivery_status || 'AGUARDANDO_RETIRADA',
+          delivery_recipient_name: raw.delivery_recipient_name || undefined,
+          delivered_at: raw.delivered_at || undefined,
           qr_token: '', // Deliberately omitted
           pix_code: raw.pix_code || null,
           created_at: raw.created_at || new Date().toISOString(),
