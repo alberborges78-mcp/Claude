@@ -1230,6 +1230,7 @@ class DatabaseService {
 
     const now = new Date().toISOString();
     order.delivery_status = 'ENTREGUE';
+    order.production_status = 'PRONTO'; // Atomic sync: pickup confirms production is ready
     order.updated_at = now;
 
     const deliveryAudit: DeliveryAudit = {

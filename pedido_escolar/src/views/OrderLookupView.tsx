@@ -318,16 +318,31 @@ export const OrderLookupView: React.FC<OrderLookupViewProps> = ({ onNavigate }) 
           </div>
         )}
 
-        {/* Card de Aviso sobre Retirada (Segurança do QR) */}
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 sm:p-5 flex items-start gap-3.5 text-xs text-amber-900 shadow-xs">
-          <ShieldAlert className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
-          <div className="space-y-1">
-            <p className="font-bold text-sm text-amber-950">Aviso sobre Retirada de Uniformes:</p>
-            <p className="text-amber-900/90 leading-relaxed">
-              Para a retirada na loja física, apresente o <strong>QR Code oficial</strong> recebido na finalização do pedido ou enviado pelo WhatsApp.
-            </p>
+        {/* Card de Aviso sobre Retirada (Segurança do QR) — SOMENTE se NÃO entregue */}
+        {!isDelivered && selectedOrder.production_status === 'PRONTO' && (
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 sm:p-5 flex items-start gap-3.5 text-xs text-amber-900 shadow-xs">
+            <ShieldAlert className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <p className="font-bold text-sm text-amber-950">Disponível para Retirada:</p>
+              <p className="text-amber-900/90 leading-relaxed">
+                Seu pedido está pronto! Para retirar na loja física, apresente o <strong>QR Code oficial</strong> recebido na finalização do pedido ou enviado pelo WhatsApp.
+              </p>
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Aviso genérico de segurança (sempre visível, sem induzir retirada) */}
+        {(!isDelivered && selectedOrder.production_status !== 'PRONTO') && (
+          <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 sm:p-5 flex items-start gap-3.5 text-xs text-slate-700 dark:text-slate-300 shadow-xs">
+            <ShieldAlert className="w-5 h-5 text-slate-500 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <p className="font-bold text-sm text-slate-900 dark:text-slate-100">Aviso sobre Retirada de Uniformes:</p>
+              <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                Para a retirada na loja física, será necessário apresentar o <strong>QR Code oficial</strong> recebido na finalização do pedido.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Card de Resumo dos Itens Encomendados */}
         <div className="bg-[var(--seven-surface-card)] rounded-2xl border border-[var(--seven-border-default)] p-5 sm:p-7 shadow-xs space-y-4">
