@@ -1544,6 +1544,39 @@ class DatabaseService {
         );
       }
 
+      // Batch-enrich delivered orders with real delivery data (avoids N+1)
+      const deliveredOrderIds = mappedOrders
+        .filter(o => o.delivery_status === 'ENTREGUE')
+        .map(o => o.id);
+
+      if (deliveredOrderIds.length > 0) {
+        try {
+          const { data: deliveriesData, error: deliveriesError } = await supabase
+            .from('deliveries')
+            .select('order_id, delivered_at, delivered_by_admin, recipient_name')
+            .in('order_id', deliveredOrderIds);
+
+          if (deliveriesError) {
+            console.error('Erro ao buscar dados de entrega em lote:', deliveriesError);
+          } else if (deliveriesData && deliveriesData.length > 0) {
+            const deliveryMap = new Map<string, any>();
+            for (const d of deliveriesData) {
+              deliveryMap.set(d.order_id, d);
+            }
+            for (const order of mappedOrders) {
+              const delivery = deliveryMap.get(order.id);
+              if (delivery) {
+                order.delivered_at = delivery.delivered_at;
+                order.delivered_by_admin = delivery.delivered_by_admin;
+                order.delivery_recipient_name = delivery.recipient_name;
+              }
+            }
+          }
+        } catch (e) {
+          console.error('Exceção ao buscar dados de entrega em lote:', e);
+        }
+      }
+
       return mappedOrders;
     }
 
