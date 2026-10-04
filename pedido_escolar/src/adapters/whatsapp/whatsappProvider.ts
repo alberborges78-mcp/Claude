@@ -106,8 +106,7 @@ export class EvolutionWhatsAppProvider implements WhatsAppProvider {
   }
 
   private async invokeEdgeFunction(
-    phone: string,
-    message: string
+    orderId: string
   ): Promise<WhatsAppMessageResult> {
     if (!this.supabaseUrl || !this.anonKey) {
       return { success: false, messageId: '', provider: 'evolution-api', error: 'Missing Supabase config' };
@@ -120,7 +119,7 @@ export class EvolutionWhatsAppProvider implements WhatsAppProvider {
           Authorization: `Bearer ${this.anonKey}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ phone, message }),
+        body: JSON.stringify({ order_id: orderId }),
       });
 
       const data = await res.json().catch(() => ({}));
@@ -152,27 +151,10 @@ export class EvolutionWhatsAppProvider implements WhatsAppProvider {
   }
 
   async sendOrderConfirmation(order: Order): Promise<WhatsAppMessageResult> {
-    const publicUrl = `https://pedidoescolar.vercel.app/consulta?pedido=${encodeURIComponent(order.order_number)}`;
-    const isPix = order.payment_method === 'PIX';
-    const paymentStatus = order.payment_status === 'PAGO' ? '✅ Pago' : isPix ? '⏳ Aguardando PIX' : '⏳ Pagar na Loja';
-
-    let itemsSummary = '';
-    (order.items || []).forEach((item) => {
-      itemsSummary += `\n• ${item.student_name} (${item.class_name}) Tam.${item.size_label} x${item.quantity}`;
-    });
-
-    const message = `🎉 *Seven Pedidos Escolares*
-Pedido *${order.order_number}* confirmado!
-
-👤 Responsável: ${order.customer_name}
-📦 Itens:${itemsSummary}
-💰 Total: ${formatCurrency(order.total_amount_cents)}
-💳 Pagamento: ${paymentStatus}
-
-📋 Acompanhe seu pedido:
-${publicUrl}`;
-
-    return this.invokeEdgeFunction(order.customer_whatsapp, message);
+    // Anti-relay: envia SOMENTE order_id; Edge Function valida pedido no Supabase,
+    // monta template server-side e envia exclusivamente para o telefone do pedido.
+    // Link seguro por order_number — qr_token NUNCA é enviado pelo WhatsApp.
+    return this.invokeEdgeFunction(order.id);
   }
 
   async sendPaymentConfirmation(order: Order): Promise<WhatsAppMessageResult> {
