@@ -5,6 +5,7 @@ import { CatalogView } from './views/CatalogView';
 import { CartView } from './views/CartView';
 import { OrderConfirmationView } from './views/OrderConfirmationView';
 import { OrderLookupView } from './views/OrderLookupView';
+import { PrivacyPolicyView } from './views/PrivacyPolicyView';
 import { LoginView } from './views/LoginView';
 import { AdminLayout } from './views/admin/AdminLayout';
 import { CartProvider } from './context/CartContext';
@@ -58,6 +59,11 @@ function MainApp() {
         return;
       }
 
+      if (pathname === '/privacidade') {
+        setCurrentView('privacy');
+        return;
+      }
+
       if (hash === '#admin') {
         setCurrentView(isAuthenticated ? 'admin' : 'login');
       }
@@ -93,6 +99,7 @@ function MainApp() {
         {currentView === 'catalog' && <CatalogView onNavigate={handleNavigate} />}
         {currentView === 'cart' && <CartView onNavigate={handleNavigate} />}
         {currentView === 'lookup' && <OrderLookupView onNavigate={handleNavigate} />}
+        {currentView === 'privacy' && <PrivacyPolicyView onNavigate={handleNavigate} />}
         {currentView === 'confirmation' && (
           <OrderConfirmationView qrToken={activeOrderToken} onNavigate={handleNavigate} />
         )}

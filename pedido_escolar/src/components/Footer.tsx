@@ -85,7 +85,12 @@ export const Footer: React.FC = () => {
         {/* ── Linha Inferior de Copyright ────────────────────────────────── */}
         <div className="border-t border-gray-800/80 pt-6 text-center text-xs text-gray-500 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p>© {new Date().getFullYear()} Seven Malharia. Todos os direitos reservados.</p>
-          <p className="text-xs text-gray-500">Sistema Seguro de Campanhas Escolares</p>
+          <div className="flex items-center gap-4">
+            <a href="/privacidade" className="hover:text-gray-300 transition-colors underline underline-offset-2">
+              Política de Privacidade
+            </a>
+            <span>Sistema Seguro de Campanhas Escolares</span>
+          </div>
         </div>
       </div>
     </footer>
