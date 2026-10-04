@@ -416,11 +416,29 @@ class DatabaseService {
 
       const createdOrder = data as Order;
 
+      // [WA E2E] Instrumentação temporária — remover após diagnóstico
+      console.log('[WA E2E] RPC pedido criado', {
+        hasId: Boolean(createdOrder?.id),
+        idType: typeof createdOrder?.id,
+      });
+
       // Disparo assíncrono de confirmação WhatsApp (não bloqueia retorno ao usuário)
       try {
+        console.log('[WA E2E] selecionando provider');
         const waProvider = getWhatsAppProvider();
-        await waProvider.sendOrderConfirmation(createdOrder);
+        console.log('[WA E2E] iniciando sendOrderConfirmation');
+        const waResult = await waProvider.sendOrderConfirmation(createdOrder);
+        console.log('[WA E2E] retorno sendOrderConfirmation', {
+          success: waResult.success,
+          provider: waResult.provider,
+          hasMessageId: Boolean(waResult.messageId),
+          error: waResult.error || null,
+        });
       } catch (err) {
+        console.error('[WA E2E] falha sanitizada', {
+          name: err instanceof Error ? err.name : 'Unknown',
+          message: err instanceof Error ? err.message : String(err),
+        });
         console.warn('WhatsApp background notification failed (does not rollback order)', err);
       }
 

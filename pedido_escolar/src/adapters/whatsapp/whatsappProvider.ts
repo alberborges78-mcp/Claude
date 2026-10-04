@@ -108,7 +108,16 @@ export class EvolutionWhatsAppProvider implements WhatsAppProvider {
   private async invokeEdgeFunction(
     orderId: string
   ): Promise<WhatsAppMessageResult> {
+    // [WA E2E] Instrumentação temporária — remover após diagnóstico
+    console.log('[WA E2E] chamando Edge Function send-whatsapp', {
+      hasOrderId: Boolean(orderId),
+      orderIdType: typeof orderId,
+    });
     if (!this.supabaseUrl || !this.anonKey) {
+      console.error('[WA E2E] falha sanitizada', {
+        name: 'ConfigError',
+        message: 'Missing Supabase config',
+      });
       return { success: false, messageId: '', provider: 'evolution-api', error: 'Missing Supabase config' };
     }
 
@@ -134,12 +143,23 @@ export class EvolutionWhatsAppProvider implements WhatsAppProvider {
         };
       }
 
+      // [WA E2E] Instrumentação temporária — remover após diagnóstico
+      console.log('[WA E2E] resposta Edge Function recebida', {
+        status: res.status,
+        ok: res.ok,
+        hasMessageId: Boolean(data.message_id),
+      });
       return {
         success: true,
         messageId: data.message_id || `evo_${Date.now()}`,
         provider: 'evolution-api',
       };
     } catch (err) {
+      // [WA E2E] Instrumentação temporária — remover após diagnóstico
+      console.error('[WA E2E] falha sanitizada', {
+        name: err instanceof Error ? err.name : 'Unknown',
+        message: err instanceof Error ? err.message : String(err),
+      });
       console.warn('[Evolution WhatsApp] Exceção:', err);
       return {
         success: false,
@@ -151,6 +171,11 @@ export class EvolutionWhatsAppProvider implements WhatsAppProvider {
   }
 
   async sendOrderConfirmation(order: Order): Promise<WhatsAppMessageResult> {
+    // [WA E2E] Instrumentação temporária — remover após diagnóstico
+    console.log('[WA E2E] EvolutionProvider.sendOrderConfirmation entrou', {
+      hasId: Boolean(order?.id),
+      idType: typeof order?.id,
+    });
     // Anti-relay: envia SOMENTE order_id; Edge Function valida pedido no Supabase,
     // monta template server-side e envia exclusivamente para o telefone do pedido.
     // Link seguro por order_number — qr_token NUNCA é enviado pelo WhatsApp.

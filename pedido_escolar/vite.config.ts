@@ -9,6 +9,10 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  // TEMPORÁRIO: preservar console.log para instrumentação WA E2E — remover após diagnóstico
+  build: {
+    minify: false,
+  },
   test: {
     globals: true,
     environment: 'jsdom',
