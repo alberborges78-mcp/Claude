@@ -1,0 +1,7 @@
+{
+  "name": "claude-monorepo",
+  "private": true,
+  "scripts": {
+    "build": "cd pedido_escolar && npm run build"
+  }
+}

@@ -1,4 +1,7 @@
 {
+  "buildCommand": "cd pedido_escolar && npm run build",
+  "outputDirectory": "pedido_escolar/dist",
+  "installCommand": "cd pedido_escolar && npm install",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]
