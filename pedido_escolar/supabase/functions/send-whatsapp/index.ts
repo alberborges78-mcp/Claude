@@ -72,12 +72,23 @@ Pedido *${order.order_number}* confirmado!
 ${publicUrl}`;
 }
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
 serve(async (req) => {
+  // Handle CORS preflight
+  if (req.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: corsHeaders });
+  }
+
   // Only accept POST
   if (req.method !== "POST") {
     return new Response(JSON.stringify({ error: "Method not allowed" }), {
       status: 405,
-      headers: { "Content-Type": "application/json" },
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 
@@ -91,14 +102,14 @@ serve(async (req) => {
   if (!apiUrl || !apiKey || !instance) {
     return new Response(
       JSON.stringify({ success: false, error: "Missing Evolution secrets" }),
-      { status: 500, headers: { "Content-Type": "application/json" } },
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
 
   if (!supabaseUrl || !serviceRoleKey) {
     return new Response(
       JSON.stringify({ success: false, error: "Missing Supabase secrets" }),
-      { status: 500, headers: { "Content-Type": "application/json" } },
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
 
@@ -109,7 +120,7 @@ serve(async (req) => {
   } catch {
     return new Response(
       JSON.stringify({ success: false, error: "Invalid JSON body" }),
-      { status: 400, headers: { "Content-Type": "application/json" } },
+      { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
 
@@ -120,7 +131,7 @@ serve(async (req) => {
         success: false,
         error: "Valid order_id (UUID) is required",
       }),
-      { status: 400, headers: { "Content-Type": "application/json" } },
+      { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
 
@@ -141,7 +152,7 @@ serve(async (req) => {
         success: false,
         error: "Order not found",
       }),
-      { status: 404, headers: { "Content-Type": "application/json" } },
+      { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
 
@@ -164,7 +175,7 @@ serve(async (req) => {
         success: false,
         error: "Order has no valid phone number",
       }),
-      { status: 400, headers: { "Content-Type": "application/json" } },
+      { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
 
@@ -203,7 +214,7 @@ serve(async (req) => {
           http_status: res.status,
           error: `Evolution API HTTP ${res.status}: ${sanitizedBody}`,
         }),
-        { status: 502, headers: { "Content-Type": "application/json" } },
+        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
@@ -215,7 +226,7 @@ serve(async (req) => {
         provider: "evolution-api",
         order_number: order.order_number,
       }),
-      { status: 200, headers: { "Content-Type": "application/json" } },
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (err) {
     return new Response(
@@ -223,7 +234,7 @@ serve(async (req) => {
         success: false,
         error: `Evolution API exception: ${sanitizeError(err)}`,
       }),
-      { status: 502, headers: { "Content-Type": "application/json" } },
+      { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
 });
