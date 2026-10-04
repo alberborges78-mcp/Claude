@@ -413,7 +413,18 @@ class DatabaseService {
       if (error) {
         throw new Error(`Erro ao registrar pedido no banco: ${error.message}`);
       }
-      return data as Order;
+
+      const createdOrder = data as Order;
+
+      // Disparo assíncrono de confirmação WhatsApp (não bloqueia retorno ao usuário)
+      try {
+        const waProvider = getWhatsAppProvider();
+        await waProvider.sendOrderConfirmation(createdOrder);
+      } catch (err) {
+        console.warn('WhatsApp background notification failed (does not rollback order)', err);
+      }
+
+      return createdOrder;
     }
 
     // Authoritative Server-Side Logic for Local/Testing Engine
