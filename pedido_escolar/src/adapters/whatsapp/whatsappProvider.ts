@@ -96,20 +96,100 @@ export class MockWhatsAppProvider implements WhatsAppProvider {
   }
 }
 
-export class ProductionWhatsAppProvider implements WhatsAppProvider {
-  async sendOrderConfirmation(_order: Order): Promise<WhatsAppMessageResult> {
-    throw new Error('WHATSAPP_INTEGRATION_PENDING: Credenciais de gateway WhatsApp pendentes.');
+export class EvolutionWhatsAppProvider implements WhatsAppProvider {
+  private readonly supabaseUrl: string;
+  private readonly anonKey: string;
+
+  constructor() {
+    this.supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+    this.anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
   }
 
-  async sendPaymentConfirmation(_order: Order): Promise<WhatsAppMessageResult> {
-    throw new Error('WHATSAPP_INTEGRATION_PENDING: Credenciais de gateway WhatsApp pendentes.');
+  private async invokeEdgeFunction(
+    phone: string,
+    message: string
+  ): Promise<WhatsAppMessageResult> {
+    if (!this.supabaseUrl || !this.anonKey) {
+      return { success: false, messageId: '', provider: 'evolution-api', error: 'Missing Supabase config' };
+    }
+
+    try {
+      const res = await fetch(`${this.supabaseUrl}/functions/v1/send-whatsapp`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${this.anonKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ phone, message }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok || !data.success) {
+        console.warn('[Evolution WhatsApp] Envio falhou:', data.error || `HTTP ${res.status}`);
+        return {
+          success: false,
+          messageId: '',
+          provider: 'evolution-api',
+          error: data.error || `HTTP ${res.status}`,
+        };
+      }
+
+      return {
+        success: true,
+        messageId: data.message_id || `evo_${Date.now()}`,
+        provider: 'evolution-api',
+      };
+    } catch (err) {
+      console.warn('[Evolution WhatsApp] Exceção:', err);
+      return {
+        success: false,
+        messageId: '',
+        provider: 'evolution-api',
+        error: err instanceof Error ? err.message : 'Unknown exception',
+      };
+    }
+  }
+
+  async sendOrderConfirmation(order: Order): Promise<WhatsAppMessageResult> {
+    const publicUrl = `https://pedidoescolar.vercel.app/consulta?pedido=${encodeURIComponent(order.order_number)}`;
+    const isPix = order.payment_method === 'PIX';
+    const paymentStatus = order.payment_status === 'PAGO' ? '✅ Pago' : isPix ? '⏳ Aguardando PIX' : '⏳ Pagar na Loja';
+
+    let itemsSummary = '';
+    (order.items || []).forEach((item) => {
+      itemsSummary += `\n• ${item.student_name} (${item.class_name}) Tam.${item.size_label} x${item.quantity}`;
+    });
+
+    const message = `🎉 *Seven Pedidos Escolares*
+Pedido *${order.order_number}* confirmado!
+
+👤 Responsável: ${order.customer_name}
+📦 Itens:${itemsSummary}
+💰 Total: ${formatCurrency(order.total_amount_cents)}
+💳 Pagamento: ${paymentStatus}
+
+📋 Acompanhe seu pedido:
+${publicUrl}`;
+
+    return this.invokeEdgeFunction(order.customer_whatsapp, message);
+  }
+
+  async sendPaymentConfirmation(order: Order): Promise<WhatsAppMessageResult> {
+    // Preservado para implementação futura — não usado nesta etapa
+    return { success: false, messageId: '', provider: 'evolution-api', error: 'Not implemented yet' };
   }
 
   async sendReceipt(_order: Order, _receiptUrl: string): Promise<WhatsAppMessageResult> {
-    throw new Error('WHATSAPP_INTEGRATION_PENDING: Credenciais de gateway WhatsApp pendentes.');
+    // Preservado para implementação futura — não usado nesta etapa
+    return { success: false, messageId: '', provider: 'evolution-api', error: 'Not implemented yet' };
   }
 }
 
 export function getWhatsAppProvider(): WhatsAppProvider {
+  const isProd = import.meta.env.PROD && import.meta.env.VITE_APP_ENV === 'production';
+  if (isProd) {
+    return new EvolutionWhatsAppProvider();
+  }
   return new MockWhatsAppProvider();
 }

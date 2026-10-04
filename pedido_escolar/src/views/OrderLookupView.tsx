@@ -50,6 +50,27 @@ export const OrderLookupView: React.FC<OrderLookupViewProps> = ({ onNavigate }) 
 
   const store = db.getStore();
 
+  // Read ?pedido= from URL on mount for direct order number lookup (no race condition)
+  React.useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const pedidoParam = params.get('pedido');
+      if (pedidoParam && typeof pedidoParam === 'string') {
+        const sanitized = pedidoParam.trim().substring(0, 50);
+        if (sanitized) {
+          setActiveMode('ORDER_NUMBER');
+          setOrderNumber(sanitized);
+          setSearchResponse(null);
+          setSelectedOrder(null);
+          setErrorMessage(null);
+          setCurrentPage(1);
+        }
+      }
+    } catch {
+      // Ignore URL parsing errors
+    }
+  }, []);
+
   // Switch mode handler: resets inputs and results
   const handleModeChange = (mode: SearchMode) => {
     setActiveMode(mode);

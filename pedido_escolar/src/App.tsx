@@ -52,8 +52,9 @@ function MainApp() {
         }
       }
 
-      if (hash === '#consultar' || pathname === '/consultar') {
+      if (hash === '#consultar' || pathname === '/consultar' || pathname === '/consulta') {
         setCurrentView('lookup');
+        // OrderLookupView reads ?pedido= directly from URL on mount — no event needed
         return;
       }
 

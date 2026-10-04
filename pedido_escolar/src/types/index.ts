@@ -227,7 +227,7 @@ export interface WhatsAppMessageResult {
   success: boolean;
   messageId?: string;
   error?: string;
-  provider: 'MOCK_DEV' | 'PRODUCTION_API';
+  provider: 'MOCK_DEV' | 'PRODUCTION_API' | 'evolution-api';
 }
 
 export interface WhatsAppProvider {
