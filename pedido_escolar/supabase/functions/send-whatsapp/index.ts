@@ -146,7 +146,22 @@ serve(async (req) => {
     .eq("id", orderId)
     .single();
 
-  if (orderError || !orderData) {
+  if (orderError) {
+    // Log safe technical metadata only — no PII, no secrets
+    console.error("[send-whatsapp] DB query error:", {
+      code: orderError.code,
+      message: orderError.message,
+    });
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: "Internal error while validating order",
+      }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
+  }
+
+  if (!orderData) {
     return new Response(
       JSON.stringify({
         success: false,
