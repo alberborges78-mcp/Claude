@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   CheckCircle2,
   Download,
@@ -37,6 +37,9 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
   const [copiedQrToken, setCopiedQrToken] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [pixLoading, setPixLoading] = useState(false);
+  const [pixError, setPixError] = useState<string | null>(null);
+  const pixGenerationAttempted = useRef(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -75,6 +78,67 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
       isMounted = false;
     };
   }, [qrToken, refreshTrigger]);
+
+  // Auto-generate PIX when order is loaded, unpaid, and has no pix_code yet.
+  // Protected against double calls via useRef flag.
+  useEffect(() => {
+    if (
+      !order ||
+      order.payment_method !== 'PIX' ||
+      order.payment_status === 'PAGO' ||
+      order.pix_code ||
+      pixGenerationAttempted.current
+    ) {
+      return;
+    }
+
+    let cancelled = false;
+    pixGenerationAttempted.current = true;
+
+    async function generatePix() {
+      if (!order) return;
+      setPixLoading(true);
+      setPixError(null);
+      try {
+        const result = await db.createPixCobranca(order.id);
+        if (cancelled) return;
+        setOrder((prev) =>
+          prev
+            ? {
+                ...prev,
+                pix_code: result.pixCopiaECola,
+                pix_txid: result.txid,
+                payment_status: 'AGUARDANDO_PIX',
+              }
+            : prev
+        );
+      } catch (err: unknown) {
+        if (!cancelled) {
+          setPixError(
+            err instanceof Error ? err.message : 'Erro desconhecido ao gerar PIX.'
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setPixLoading(false);
+        }
+      }
+    }
+
+    generatePix();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [order?.id, order?.payment_method, order?.payment_status, order?.pix_code]);
+
+  const handleRetryPix = () => {
+    if (!order || pixLoading) return;
+    pixGenerationAttempted.current = false;
+    setPixError(null);
+    // Trigger re-render to allow the useEffect to fire again
+    setRefreshTrigger((t) => t + 1);
+  };
 
   const store = db.getStore();
 
@@ -261,6 +325,30 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
           </div>
         </div>
       </div>
+
+      {/* ── PIX Loading / Error / Retry ── */}
+      {order.payment_method === 'PIX' && !isPaid && !order.pix_code && (
+        <div className="bg-teal-50 dark:bg-teal-900/30 border-2 border-teal-200 dark:border-teal-700/50 rounded-2xl p-5 sm:p-7 shadow-xs text-center space-y-4">
+          {pixLoading && (
+            <>
+              <div className="w-10 h-10 border-4 border-teal-600 border-t-transparent rounded-full animate-spin mx-auto" />
+              <p className="text-sm font-bold text-teal-800 dark:text-teal-300">Gerando seu PIX...</p>
+            </>
+          )}
+          {!pixLoading && pixError && (
+            <>
+              <p className="text-sm font-bold text-red-700 dark:text-red-400">{pixError}</p>
+              <button
+                onClick={handleRetryPix}
+                disabled={pixLoading}
+                className="px-5 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm font-black rounded-xl transition-colors disabled:opacity-50"
+              >
+                Tentar gerar PIX novamente
+              </button>
+            </>
+          )}
+        </div>
+      )}
 
       {/* ── Bloco de Pagamento PIX (se PIX selecionado e ainda não pago) ── */}
       {order.payment_method === 'PIX' && !isPaid && order.pix_code && (

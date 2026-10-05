@@ -583,6 +583,60 @@ class DatabaseService {
     return newOrder;
   }
 
+  /**
+   * Cria cobrança PIX via Edge Function bb-pix-create.
+   * Envia SOMENTE order_id — valor, chave e txid são resolvidos server-side.
+   * Retorna dados da cobrança (txid, pixCopiaECola, status, valor, reused).
+   */
+  public async createPixCobranca(orderId: string): Promise<{
+    txid: string;
+    pixCopiaECola: string;
+    status: string | null;
+    valor: string;
+    reused: boolean;
+  }> {
+    if (!isSupabaseConfigured) {
+      throw new Error('Supabase não configurado para geração de PIX.');
+    }
+
+    const { data, error } = await supabase.functions.invoke('bb-pix-create', {
+      body: { order_id: orderId },
+    });
+
+    if (error) {
+      throw new Error(
+        error.message || 'Falha ao comunicar com serviço de PIX.'
+      );
+    }
+
+    // A Edge Function retorna erro estruturado em HTTP 200 quando há falha controlada
+    if (data && typeof data === 'object' && 'error' in data && !data.pixCopiaECola) {
+      throw new Error(
+        (data as { error?: string }).error || 'Erro na geração do PIX.'
+      );
+    }
+
+    const result = data as {
+      txid?: string;
+      pixCopiaECola?: string;
+      status?: string | null;
+      valor?: string;
+      reused?: boolean;
+    };
+
+    if (!result.pixCopiaECola || !result.txid) {
+      throw new Error('Resposta do PIX incompleta: faltam txid ou pixCopiaECola.');
+    }
+
+    return {
+      txid: result.txid,
+      pixCopiaECola: result.pixCopiaECola,
+      status: result.status ?? null,
+      valor: result.valor ?? '',
+      reused: result.reused ?? false,
+    };
+  }
+
   public getOrders(filters?: {
     school_id?: string;
     campaign_id?: string;
