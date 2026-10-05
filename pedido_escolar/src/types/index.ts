@@ -98,6 +98,7 @@ export interface Order {
   pix_code?: string | null;
   pix_qr_base64?: string | null;
   pix_txid?: string | null;
+  pix_expires_at?: string | null;
   created_at: string;
   updated_at: string;
   items?: OrderItem[];

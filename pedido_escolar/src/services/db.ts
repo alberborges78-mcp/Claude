@@ -594,6 +594,7 @@ class DatabaseService {
     status: string | null;
     valor: string;
     reused: boolean;
+    pix_expires_at: string | null;
   }> {
     if (!isSupabaseConfigured) {
       throw new Error('Supabase não configurado para geração de PIX.');
@@ -622,6 +623,7 @@ class DatabaseService {
       status?: string | null;
       valor?: string;
       reused?: boolean;
+      pix_expires_at?: string | null;
     };
 
     if (!result.pixCopiaECola || !result.txid) {
@@ -634,6 +636,7 @@ class DatabaseService {
       status: result.status ?? null,
       valor: result.valor ?? '',
       reused: result.reused ?? false,
+      pix_expires_at: result.pix_expires_at ?? null,
     };
   }
 
@@ -1775,6 +1778,8 @@ class DatabaseService {
     const orders = this.getOrders({ campaign_id: campaignId });
     for (const order of orders) {
       if (order.order_status === 'CANCELADO') continue;
+      // PIX orders only enter production when paid; LOJA orders follow existing rules
+      if (order.payment_method === 'PIX' && order.payment_status !== 'PAGO') continue;
 
       const itemsInClass = (order.items || []).filter((item) => item.class_id === classId);
       for (const item of itemsInClass) {
@@ -1840,6 +1845,8 @@ class DatabaseService {
     for (const order of orders) {
       // Same production rule: skip cancelled orders
       if (order.order_status === 'CANCELADO') continue;
+      // PIX orders only enter production when paid; LOJA orders follow existing rules
+      if (order.payment_method === 'PIX' && order.payment_status !== 'PAGO') continue;
 
       const itemsInClass = (order.items || []).filter((item) => item.class_id === classId);
       for (const item of itemsInClass) {
@@ -1945,28 +1952,37 @@ class DatabaseService {
     let pendingRevenueCents = 0;
     let deliveredCount = 0;
     let pendingDeliveryCount = 0;
+    let validOrderCount = 0;
 
     for (const order of orders) {
-      totalPieces += order.total_items;
-      totalRevenueCents += order.total_amount_cents;
+      // Exclude cancelled and unpaid PIX orders from operational/revenue metrics
+      const isCancelled = order.order_status === 'CANCELADO';
+      const isPixUnpaid = order.payment_method === 'PIX' && order.payment_status !== 'PAGO';
+
+      if (!isCancelled && !isPixUnpaid) {
+        validOrderCount++;
+        totalPieces += order.total_items;
+        totalRevenueCents += order.total_amount_cents;
+      }
 
       if (order.payment_status === 'PAGO') {
         paidOrders++;
         paidRevenueCents += order.total_amount_cents;
-      } else {
+      } else if (!isCancelled && !isPixUnpaid) {
+        // Only count as unpaid/pending if not cancelled/expired PIX
         unpaidOrders++;
         pendingRevenueCents += order.total_amount_cents;
       }
 
       if (order.delivery_status === 'ENTREGUE') {
         deliveredCount++;
-      } else {
+      } else if (!isCancelled) {
         pendingDeliveryCount++;
       }
     }
 
     return {
-      totalOrders: orders.length,
+      totalOrders: validOrderCount,
       totalPieces,
       paidOrders,
       unpaidOrders,
@@ -1999,28 +2015,36 @@ class DatabaseService {
     let pendingRevenueCents = 0;
     let deliveredCount = 0;
     let pendingDeliveryCount = 0;
+    let validOrderCount = 0;
 
     for (const order of orders) {
-      totalPieces += order.total_items;
-      totalRevenueCents += order.total_amount_cents;
+      // Exclude cancelled and unpaid PIX orders from operational/revenue metrics
+      const isCancelled = order.order_status === 'CANCELADO';
+      const isPixUnpaid = order.payment_method === 'PIX' && order.payment_status !== 'PAGO';
+      if (!isCancelled && !isPixUnpaid) {
+        validOrderCount++;
+        totalPieces += order.total_items;
+        totalRevenueCents += order.total_amount_cents;
+      }
 
       if (order.payment_status === 'PAGO') {
         paidOrders++;
         paidRevenueCents += order.total_amount_cents;
-      } else {
+      } else if (!isCancelled && !isPixUnpaid) {
+        // Only count as unpaid/pending if not cancelled/expired PIX
         unpaidOrders++;
         pendingRevenueCents += order.total_amount_cents;
       }
 
       if (order.delivery_status === 'ENTREGUE') {
         deliveredCount++;
-      } else {
+      } else if (!isCancelled) {
         pendingDeliveryCount++;
       }
     }
 
     return {
-      totalOrders: orders.length,
+      totalOrders: validOrderCount,
       totalPieces,
       paidOrders,
       unpaidOrders,

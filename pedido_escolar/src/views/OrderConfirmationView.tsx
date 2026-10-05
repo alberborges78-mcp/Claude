@@ -39,7 +39,10 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [pixLoading, setPixLoading] = useState(false);
   const [pixError, setPixError] = useState<string | null>(null);
-  const pixGenerationAttempted = useRef(false);
+  // Tracks whether a PIX generation call is currently in-flight to prevent parallel calls.
+  // Unlike a permanent "attempted" flag, this resets after each call completes,
+  // allowing legitimate retries when pix_code is still missing.
+  const pixCallInFlight = useRef(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -80,20 +83,22 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
   }, [qrToken, refreshTrigger]);
 
   // Auto-generate PIX when order is loaded, unpaid, and has no pix_code yet.
-  // Protected against double calls via useRef flag.
+  // Uses pixCallInFlight ref to prevent parallel calls without permanently blocking retries.
   useEffect(() => {
     if (
       !order ||
       order.payment_method !== 'PIX' ||
       order.payment_status === 'PAGO' ||
+      order.payment_status === 'PIX_EXPIRADO' ||
+      order.order_status === 'CANCELADO' ||
       order.pix_code ||
-      pixGenerationAttempted.current
+      pixCallInFlight.current
     ) {
       return;
     }
 
     let cancelled = false;
-    pixGenerationAttempted.current = true;
+    pixCallInFlight.current = true;
 
     async function generatePix() {
       if (!order) return;
@@ -109,6 +114,7 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
                 pix_code: result.pixCopiaECola,
                 pix_txid: result.txid,
                 payment_status: 'AGUARDANDO_PIX',
+                pix_expires_at: result.pix_expires_at,
               }
             : prev
         );
@@ -121,6 +127,7 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
       } finally {
         if (!cancelled) {
           setPixLoading(false);
+          pixCallInFlight.current = false;
         }
       }
     }
@@ -133,10 +140,11 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
   }, [order?.id, order?.payment_method, order?.payment_status, order?.pix_code]);
 
   const handleRetryPix = () => {
-    if (!order || pixLoading) return;
-    pixGenerationAttempted.current = false;
+    if (!order || pixLoading || pixCallInFlight.current) return;
     setPixError(null);
-    // Trigger re-render to allow the useEffect to fire again
+    // Reset the in-flight guard so the useEffect can fire again on next render
+    pixCallInFlight.current = false;
+    // Force a re-render cycle; the useEffect will detect pix_code is still null and retry
     setRefreshTrigger((t) => t + 1);
   };
 
@@ -183,6 +191,16 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
 
   const isPaid = order.payment_status === 'PAGO';
   const isDelivered = order.delivery_status === 'ENTREGUE';
+  const isPixExpired =
+    order.payment_method === 'PIX' &&
+    (order.payment_status === 'PIX_EXPIRADO' || order.order_status === 'CANCELADO');
+  const isPixPending = order.payment_method === 'PIX' && !isPaid && !isPixExpired;
+  const showOperationalStatuses = order.payment_method !== 'PIX' || isPaid;
+  const pixExpiresAt = order.pix_expires_at ? new Date(order.pix_expires_at) : null;
+  const pixExpiryLabel =
+    pixExpiresAt && !Number.isNaN(pixExpiresAt.getTime())
+      ? pixExpiresAt.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
+      : null;
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
   const publicQrUrl = `${origin}/pedido/${order.qr_token}`;
 
@@ -222,12 +240,6 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
     }
   };
 
-  // Helper dev simulation for instant PIX confirmation
-  const handleSimulatePixPaid = async () => {
-    await db.confirmPayment(order.id, 'Simulação PIX BB (Dev)', 'PIX');
-    setRefreshTrigger((prev) => prev + 1);
-  };
-
   const displayedPhone = (order.customer_whatsapp && order.customer_whatsapp.includes('*'))
     ? order.customer_whatsapp
     : isAuthenticated
@@ -260,13 +272,18 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
 
         <div className="space-y-1.5">
           <span className="text-xs font-bold uppercase tracking-wider text-teal-700 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/30 px-3 py-1 rounded-full border border-teal-100 dark:border-teal-800 inline-block">
-            Seven Malharia • Pedido Registrado
+            Seven Malharia • {isPixExpired ? 'Pedido Encerrado' : isPaid ? 'Pedido Confirmado' : 'Pedido Registrado'}
           </span>
           <h1 className="text-2xl sm:text-3xl font-black text-[var(--seven-text-primary)] font-display pt-1">
-            Pedido {order.order_number}
+            {isPixExpired ? 'PEDIDO EXPIRADO / CANCELADO' : isPaid ? 'PEDIDO CONFIRMADO' : 'PEDIDO RECEBIDO COM SUCESSO'}
           </h1>
+          <p className="text-sm font-black text-[var(--seven-text-primary)]">Pedido {order.order_number}</p>
           <p className="text-xs sm:text-sm text-[var(--seven-text-secondary)] max-w-md mx-auto leading-relaxed">
-            Obrigado, <strong className="text-[var(--seven-text-primary)] font-bold">{order.customer_name}</strong>! Seu pedido foi registrado com sucesso em nosso sistema.
+            {isPixExpired
+              ? 'O prazo de pagamento deste pedido terminou.'
+              : isPaid
+              ? 'Pagamento confirmado. Agora seu pedido pode seguir para produção.'
+              : <>Obrigado, <strong className="text-[var(--seven-text-primary)] font-bold">{order.customer_name}</strong>! Seu pedido foi recebido e aguarda o pagamento.</>}
           </p>
         </div>
 
@@ -292,14 +309,16 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
             <p className="text-xs font-black mt-0.5">
               {isPaid
                 ? 'PAGO'
+                : isPixExpired
+                ? 'PIX EXPIRADO'
                 : order.payment_method === 'PIX'
-                ? 'AGUARDANDO PIX'
+                ? 'AGUARDANDO PAGAMENTO'
                 : 'NÃO PAGO (LOJA)'}
             </p>
           </div>
 
           {/* Status Produção */}
-          <div className="bg-[var(--seven-surface-input)] p-3 rounded-xl border border-[var(--seven-border-default)]">
+          <div className={`${showOperationalStatuses ? '' : 'hidden'} bg-[var(--seven-surface-input)] p-3 rounded-xl border border-[var(--seven-border-default)]`}>
             <span className="text-xs font-bold text-[var(--seven-text-secondary)] uppercase tracking-wider block">Produção</span>
             <p className="text-xs font-black text-[var(--seven-text-primary)] mt-0.5">
               {order.production_status === 'PENDENTE'
@@ -326,8 +345,31 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
         </div>
       </div>
 
+      {/* ── PIX expirado/cancelado: nunca reutilizar nem regenerar cobrança ── */}
+      {isPixExpired && (
+        <div className="bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-2xl p-5 sm:p-7 shadow-xs space-y-3">
+          <div className="flex items-center gap-2 text-red-700 dark:text-red-400">
+            <AlertTriangle className="w-5 h-5 shrink-0" />
+            <h2 className="text-base sm:text-lg font-black font-display">PAGAMENTO EXPIRADO</h2>
+          </div>
+          <p className="text-sm font-bold text-red-800 dark:text-red-300">
+            Este pedido expirou e foi cancelado por falta de pagamento dentro do prazo de 6 horas.
+          </p>
+          <p className="text-xs sm:text-sm text-[var(--seven-text-secondary)] leading-relaxed">
+            Para realizar a compra, faça um <strong>NOVO PEDIDO</strong>. Um novo PIX será gerado para a nova compra.
+          </p>
+          <button
+            type="button"
+            onClick={() => onNavigate('catalog')}
+            className="min-h-[44px] px-5 py-2.5 bg-red-700 hover:bg-red-800 text-white text-xs font-black rounded-xl transition-colors"
+          >
+            FAZER NOVO PEDIDO
+          </button>
+        </div>
+      )}
+
       {/* ── PIX Loading / Error / Retry ── */}
-      {order.payment_method === 'PIX' && !isPaid && !order.pix_code && (
+      {isPixPending && !order.pix_code && (
         <div className="bg-teal-50 dark:bg-teal-900/30 border-2 border-teal-200 dark:border-teal-700/50 rounded-2xl p-5 sm:p-7 shadow-xs text-center space-y-4">
           {pixLoading && (
             <>
@@ -350,20 +392,18 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
         </div>
       )}
 
-      {/* ── Bloco de Pagamento PIX (se PIX selecionado e ainda não pago) ── */}
-      {order.payment_method === 'PIX' && !isPaid && order.pix_code && (
-        <div className="bg-teal-50 dark:bg-teal-900/30 border-2 border-teal-200 dark:border-teal-700/50 rounded-2xl p-5 sm:p-7 shadow-xs space-y-5 text-[var(--seven-text-primary)]">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-teal-100 dark:border-teal-800 pb-4">
+      {/* ── CAIXA DE PAGAMENTO PIX (se PIX selecionado e ainda não pago) ── */}
+      {isPixPending && order.pix_code && (
+        <div className="bg-[#FFFBE6] dark:bg-[#1a2e1a] border-2 border-[#F5E050] dark:border-[#3d5c3d] rounded-2xl p-5 sm:p-7 shadow-md space-y-5 text-[var(--seven-text-primary)]">
+          {/* Header com Logo BB e Título */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#F5E050]/50 dark:border-[#3d5c3d]/50 pb-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-teal-600 text-white shadow-xs">
-                <QrCode className="w-6 h-6" />
-              </div>
               <div>
-                <h2 className="text-base sm:text-lg font-black font-display text-[var(--seven-text-primary)]">
-                  Pague com PIX Banco do Brasil
+                <h2 className="text-base sm:text-lg font-black font-display text-[#003399] dark:text-[#66B2FF]">
+                  PAGAMENTO VIA PIX
                 </h2>
-                <p className="text-xs text-[var(--seven-text-secondary)] mt-0.5">
-                  Total a pagar: <strong className="text-teal-700 dark:text-teal-400 font-black text-sm sm:text-base font-display">{formatCurrency(order.total_amount_cents)}</strong>
+                <p className="text-[10px] text-[var(--seven-text-secondary)] mt-0.5 uppercase tracking-wide font-bold">
+                  Banco do Brasil
                 </p>
               </div>
             </div>
@@ -373,16 +413,46 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
             </span>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center gap-6">
+          {/* Informações Obrigatórias da Cobrança */}
+          <div className="space-y-1.5 text-xs sm:text-sm">
+            <p className="font-bold text-[var(--seven-text-primary)]">
+              Valor a pagar: <strong className="text-[#003399] dark:text-[#66B2FF] text-base sm:text-lg font-black">{formatCurrency(order.total_amount_cents)}</strong>
+            </p>
+            <p className="text-[var(--seven-text-secondary)]">
+              Recebedor: <strong className="text-[var(--seven-text-primary)]">P. CAMILA CAMBRAIA DA COSTA Ltda.</strong>
+            </p>
+            <p className="text-[var(--seven-text-secondary)]">
+              Instituição: <strong className="text-[var(--seven-text-primary)]">Banco do Brasil</strong>
+            </p>
+            <p className="text-[10px] text-[var(--seven-text-secondary)] italic opacity-80 pt-1">
+              Pagamento processado pelo Banco do Brasil para a conta da empresa identificada acima.
+            </p>
+            <div className="mt-3 rounded-xl border border-amber-300 bg-amber-100/80 dark:bg-amber-900/30 dark:border-amber-700 px-3 py-2.5">
+              <p className="text-xs font-black text-amber-900 dark:text-amber-300">
+                O PIX é válido por 6 horas{pixExpiryLabel ? `, até ${pixExpiryLabel}` : ''}.
+              </p>
+              <p className="text-[11px] text-amber-800 dark:text-amber-400 mt-1">
+                Após o vencimento, este pedido será cancelado e será necessário fazer um novo pedido.
+              </p>
+            </div>
+          </div>
+
+          {/* QR Code PIX + Copia e Cola */}
+          <div className="flex flex-col sm:flex-row items-center gap-6 pt-2">
             {/* QR Code PIX */}
-            <div className="bg-white p-3.5 rounded-2xl border border-teal-100 dark:border-teal-800/50 shadow-xs flex-shrink-0">
-              <QRCodeSVG
-                value={order.pix_code}
-                size={160}
-                bgColor="#FFFFFF"
-                fgColor="#0F172A"
-                level="M"
-              />
+            <div className="flex flex-col items-center gap-2 flex-shrink-0">
+              <p className="text-[10px] font-black uppercase tracking-wider text-[#003399] dark:text-[#66B2FF]">
+                QR CODE PARA PAGAMENTO PIX
+              </p>
+              <div className="bg-white p-3.5 rounded-2xl border-2 border-[#003399]/20 dark:border-[#66B2FF]/20 shadow-sm">
+                <QRCodeSVG
+                  value={order.pix_code}
+                  size={180}
+                  bgColor="#FFFFFF"
+                  fgColor="#003399"
+                  level="M"
+                />
+              </div>
             </div>
 
             {/* Instruções Copia e Cola */}
@@ -391,7 +461,7 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
                 Escaneie o QR Code no aplicativo do seu banco ou copie o código Pix abaixo para efetuar o pagamento:
               </p>
 
-              <div className="bg-[var(--seven-surface-input)] border border-[var(--seven-border-default)] p-2 rounded-xl flex items-center justify-between gap-2 shadow-xs min-w-0">
+              <div className="bg-white dark:bg-[#0f1f0f] border border-[#003399]/20 dark:border-[#66B2FF]/20 p-2 rounded-xl flex items-center justify-between gap-2 shadow-xs min-w-0">
                 <input
                   type="text"
                   readOnly
@@ -401,7 +471,7 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
                 <button
                   type="button"
                   onClick={handleCopyPix}
-                  className="min-h-[44px] px-4 py-2 bg-teal-600 hover:bg-teal-700 active:scale-95 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 shadow-xs transition-all shrink-0 cursor-pointer"
+                  className="min-h-[44px] px-4 py-2 bg-[#003399] hover:bg-[#002266] active:scale-95 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 shadow-xs transition-all shrink-0 cursor-pointer"
                 >
                   {copiedPix ? (
                     <>
@@ -417,22 +487,13 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
                 </button>
               </div>
 
-              {/* Botão de simulação dev */}
-              <div className="pt-1">
-                <button
-                  type="button"
-                  onClick={handleSimulatePixPaid}
-                  className="text-xs text-teal-600 hover:text-teal-800 dark:text-teal-400 dark:hover:text-teal-300 underline font-medium cursor-pointer"
-                >
-                  [Dev/Teste]: Simular Confirmação Instantânea do PIX BB
-                </button>
-              </div>
-            </div>
+                          </div>
           </div>
         </div>
       )}
 
-      {/* ── Card Oficial do QR Code de Retirada na Loja ──────────────────── */}
+      {/* ── Retirada só aparece após pagamento PIX; LOJA preserva fluxo existente ── */}
+      {showOperationalStatuses && (
       <div className="bg-[var(--seven-surface-card)] rounded-2xl border border-[var(--seven-border-default)] p-5 sm:p-7 shadow-xs space-y-6">
         <div className="flex flex-col sm:flex-row items-center gap-6">
           {/* Pickup QR Code */}
@@ -458,11 +519,18 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
             </div>
 
             <h3 className="text-base sm:text-lg font-black text-[var(--seven-text-primary)] font-display">
-              QR Code de Retirada na Loja
+              QR CODE DE RETIRADA NA LOJA
             </h3>
 
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-lg px-3 py-2">
+              <p className="text-xs font-black text-red-700 dark:text-red-400 uppercase tracking-wide flex items-center gap-1.5">
+                <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
+                Este QR Code NÃO realiza pagamento.
+              </p>
+            </div>
+
             <p className="text-xs text-[var(--seven-text-secondary)] leading-relaxed">
-              “Para retirar o pedido é <strong>obrigatória</strong> a apresentação deste QR Code. Outra pessoa poderá retirar o pedido apresentando o QR Code enviado ao responsável.”
+              Este código serve <strong>exclusivamente</strong> para identificação e retirada do pedido na loja. Para pagar, utilize o QR Code PIX acima.
             </p>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pt-1">
@@ -526,6 +594,7 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
           </p>
         </div>
       </div>
+      )}
 
       {/* ── Resumo Detalhado dos Itens Encomendados ──────────────────────── */}
       <div className="bg-[var(--seven-surface-card)] rounded-2xl border border-[var(--seven-border-default)] p-5 sm:p-7 shadow-xs space-y-4">

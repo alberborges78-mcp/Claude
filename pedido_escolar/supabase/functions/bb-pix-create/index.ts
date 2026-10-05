@@ -107,7 +107,7 @@ async function createCobranca(
     const url = `${pixBaseUrl}/cob/${encodeURIComponent(txid)}?gw-dev-app-key=${encodeURIComponent(appKey)}`;
 
     const payload = {
-      calendario: { expiracao: 3600 },
+      calendario: { expiracao: 21600 },
       valor: { original: valorOriginal },
       chave: pixKey,
       solicitacaoPagador: "Pedido teste Seven",
@@ -356,6 +356,30 @@ serve(async (req) => {
   // Idempotency: if order already has a persisted PIX cobrança, return it
   // without calling OAuth or /cob again.
   if (existingPixTxid && existingPixCode) {
+    // For REUSED path, fetch pix_expires_at from DB if already persisted
+    let reusedExpiresAt: string | null = null;
+    try {
+      const dbRes = await fetch(
+        `${supabaseUrl}/rest/v1/orders?id=eq.${encodeURIComponent(orderId)}&select=pix_expires_at`,
+        {
+          method: "GET",
+          headers: {
+            apikey: serviceRoleKey,
+            Authorization: `Bearer ${serviceRoleKey}`,
+            Accept: "application/json",
+          },
+        }
+      );
+      if (dbRes.ok) {
+        const rows = (await dbRes.json()) as Array<{ pix_expires_at: string | null }>;
+        if (rows.length > 0) {
+          reusedExpiresAt = rows[0].pix_expires_at || null;
+        }
+      }
+    } catch {
+      // Non-critical: proceed without expires_at if lookup fails
+    }
+
     return new Response(
       JSON.stringify({
         oauth: "SKIP",
@@ -364,6 +388,7 @@ serve(async (req) => {
         txid: existingPixTxid,
         pixCopiaECola: existingPixCode,
         valor: (totalAmountCents / 100).toFixed(2),
+        ...(reusedExpiresAt ? { pix_expires_at: reusedExpiresAt } : {}),
       }),
       { status: 200, headers: { "Content-Type": "application/json" } }
     );
@@ -459,6 +484,15 @@ serve(async (req) => {
             pix_txid: recoverTxid,
             pix_code: recoveredPixCode,
             payment_status: "AGUARDANDO_PIX",
+            // Calculate pix_expires_at from real BB calendario data (criacao + expiracao)
+            ...(getCobResult.data.calendario?.criacao && getCobResult.data.calendario?.expiracao
+              ? {
+                  pix_expires_at: new Date(
+                    new Date(getCobResult.data.calendario.criacao).getTime() +
+                      getCobResult.data.calendario.expiracao * 1000
+                  ).toISOString(),
+                }
+              : {}),
           }),
         }
       );
@@ -541,6 +575,13 @@ serve(async (req) => {
   // Uses PATCH via Supabase REST with service role key.
   const finalTxid = cobResult.data.txid || txid;
   const finalPixCode = cobResult.data.pixCopiaECola || null;
+  const finalExpiresAt =
+    cobResult.data.calendario?.criacao && cobResult.data.calendario?.expiracao
+      ? new Date(
+          new Date(cobResult.data.calendario.criacao).getTime() +
+            cobResult.data.calendario.expiracao * 1000
+        ).toISOString()
+      : null;
 
   if (finalPixCode) {
     try {
@@ -558,6 +599,9 @@ serve(async (req) => {
             pix_txid: finalTxid,
             pix_code: finalPixCode,
             payment_status: "AGUARDANDO_PIX",
+            // Calculate pix_expires_at from real BB calendario data (criacao + expiracao)
+            // Only set if BB returned valid criacao timestamp; never use local clock.
+            ...(finalExpiresAt ? { pix_expires_at: finalExpiresAt } : {}),
           }),
         }
       );
@@ -603,6 +647,7 @@ serve(async (req) => {
       pixCopiaECola: finalPixCode,
       location: cobResult.data.loc?.location || null,
       expiracao: cobResult.data.calendario?.expiracao || null,
+      pix_expires_at: finalExpiresAt,
       valor: cobResult.data.valor?.original || valorOriginal,
     }),
     { status: 200, headers: { "Content-Type": "application/json" } }
