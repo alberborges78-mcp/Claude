@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
-import { CatalogView } from './views/CatalogView';
-import { CartView } from './views/CartView';
-import { OrderConfirmationView } from './views/OrderConfirmationView';
-import { OrderLookupView } from './views/OrderLookupView';
-import { PrivacyPolicyView } from './views/PrivacyPolicyView';
-import { LoginView } from './views/LoginView';
-import { AdminLayout } from './views/admin/AdminLayout';
+
+const CatalogView = lazy(() => import('./views/CatalogView').then((m) => ({ default: m.CatalogView })));
+const CartView = lazy(() => import('./views/CartView').then((m) => ({ default: m.CartView })));
+const OrderConfirmationView = lazy(() => import('./views/OrderConfirmationView').then((m) => ({ default: m.OrderConfirmationView })));
+const OrderLookupView = lazy(() => import('./views/OrderLookupView').then((m) => ({ default: m.OrderLookupView })));
+const PrivacyPolicyView = lazy(() => import('./views/PrivacyPolicyView').then((m) => ({ default: m.PrivacyPolicyView })));
+const LoginView = lazy(() => import('./views/LoginView').then((m) => ({ default: m.LoginView })));
+const AdminLayout = lazy(() => import('./views/admin/AdminLayout').then((m) => ({ default: m.AdminLayout })));
 import { CartProvider } from './context/CartContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 function MainApp() {
@@ -96,6 +97,11 @@ function MainApp() {
       <Header currentView={currentView} onNavigate={handleNavigate} theme={theme} onToggleTheme={toggleTheme} />
 
       <main className="flex-1 relative z-10">
+        <Suspense fallback={
+          <div className="min-h-[45vh] flex items-center justify-center">
+            <div className="w-8 h-8 border-4 border-teal-600 border-t-transparent rounded-full animate-spin" />
+          </div>
+        }>
         {currentView === 'catalog' && <CatalogView onNavigate={handleNavigate} />}
         {currentView === 'cart' && <CartView onNavigate={handleNavigate} />}
         {currentView === 'lookup' && <OrderLookupView onNavigate={handleNavigate} />}
@@ -124,6 +130,7 @@ function MainApp() {
             />
           )
         )}
+        </Suspense>
       </main>
 
       <Footer />
