@@ -479,19 +479,19 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
             <p className="text-[10px] text-[var(--seven-text-secondary)] italic opacity-80 pt-1">
               Pagamento processado pelo Banco do Brasil para a conta da empresa identificada acima.
             </p>
-            <div className="mt-3 rounded-xl border border-sky-300 bg-sky-50/90 dark:bg-sky-900/20 dark:border-sky-700 px-3 py-2.5">
-              <p className="text-xs font-black text-sky-900 dark:text-sky-300">
+            <div className="mt-3 rounded-xl border border-sky-300 bg-sky-50 px-3 py-2.5">
+              <p className="text-xs font-black text-sky-900">
                 Seu pedido só será liberado para produção após a confirmação do pagamento.
               </p>
-              <p className="text-[11px] text-sky-800 dark:text-sky-400 mt-1">
+              <p className="text-[11px] text-sky-800 font-medium mt-1">
                 Após pagar, aguarde nesta tela. A confirmação e a liberação do QR de retirada acontecem automaticamente.
               </p>
             </div>
-            <div className="mt-3 rounded-xl border border-amber-300 bg-amber-100/80 dark:bg-amber-900/30 dark:border-amber-700 px-3 py-2.5">
-              <p className="text-xs font-black text-amber-900 dark:text-amber-300">
+            <div className="mt-3 rounded-xl border border-amber-300 bg-amber-100 px-3 py-2.5">
+              <p className="text-xs font-black text-amber-950">
                 O PIX é válido por 6 horas{pixExpiryLabel ? `, até ${pixExpiryLabel}` : ''}.
               </p>
-              <p className="text-[11px] text-amber-800 dark:text-amber-400 mt-1">
+              <p className="text-[11px] text-amber-900 font-medium mt-1">
                 Após o vencimento, este pedido será cancelado e será necessário fazer um novo pedido.
               </p>
             </div>
@@ -501,10 +501,10 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
           <div className="flex flex-col sm:flex-row items-center gap-6 pt-2">
             {/* QR Code PIX */}
             <div className="flex flex-col items-center gap-2 flex-shrink-0">
-              <p className="text-[10px] font-black uppercase tracking-wider text-[#003399] dark:text-[#66B2FF]">
+              <p className="text-[10px] font-black uppercase tracking-wider text-[#003399]">
                 QR CODE PARA PAGAMENTO PIX
               </p>
-              <div className="bg-white p-3.5 rounded-2xl border-2 border-[#003399]/20 dark:border-[#66B2FF]/20 shadow-sm">
+              <div className="bg-white p-3.5 rounded-2xl border-2 border-blue-200 shadow-sm">
                 <QRCodeSVG
                   value={order.pix_code}
                   size={180}

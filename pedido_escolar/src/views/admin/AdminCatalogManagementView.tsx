@@ -54,6 +54,7 @@ export const AdminCatalogManagementView: React.FC = () => {
   // Price edits
   const [editingPriceId, setEditingPriceId] = useState<string | null>(null);
   const [editingPriceValue, setEditingPriceValue] = useState<string>('');
+  const [editingSizeLabel, setEditingSizeLabel] = useState<string>('');
   const [isSavingPrice, setIsSavingPrice] = useState(false);
   const [priceSavedFeedback, setPriceSavedFeedback] = useState(false);
 
@@ -95,10 +96,12 @@ export const AdminCatalogManagementView: React.FC = () => {
     const numeric = parseFloat(editingPriceValue.replace(',', '.'));
     if (isNaN(numeric) || numeric <= 0) return;
     const cents = Math.round(numeric * 100);
+    const sizeLabel = editingSizeLabel.trim();
+    if (!sizeLabel) return;
     
     setIsSavingPrice(true);
     try {
-      await db.updatePrice(id, cents);
+      await db.updatePrice(id, cents, sizeLabel);
       setEditingPriceId(null);
       setRefresh((p) => p + 1);
       setPriceSavedFeedback(true);
@@ -314,15 +317,23 @@ export const AdminCatalogManagementView: React.FC = () => {
               key={p.id}
               className="p-3 bg-slate-50 border border-slate-200 rounded-2xl text-center space-y-1"
             >
-              <span className="text-xs font-black text-slate-900 block">{p.size_label}</span>
               {editingPriceId === p.id ? (
-                <div className="flex items-center justify-center">
+                <div className="space-y-2">
+                  <label className="block text-[10px] font-black text-slate-600 uppercase">Tamanho / Nome</label>
                   <input
                     type="text"
+                    value={editingSizeLabel}
+                    onChange={(e) => setEditingSizeLabel(e.target.value)}
+                    className="w-full px-2 py-2 min-h-[40px] bg-white border border-blue-400 rounded-lg text-center text-xs font-black text-slate-900 outline-none focus:ring-2 focus:ring-blue-200"
+                    autoFocus
+                  />
+                  <label className="block text-[10px] font-black text-slate-600 uppercase">Preço (R$)</label>
+                  <input
+                    type="text"
+                    inputMode="decimal"
                     value={editingPriceValue}
                     onChange={(e) => setEditingPriceValue(e.target.value)}
-                    className="w-full max-w-[80px] px-2 py-1.5 min-h-[44px] bg-white border border-emerald-500 rounded-lg text-center text-sm font-black text-emerald-700 outline-none ring-2 ring-emerald-500/20"
-                    autoFocus
+                    className="w-full px-2 py-2 min-h-[40px] bg-white border border-emerald-500 rounded-lg text-center text-sm font-black text-emerald-800 outline-none focus:ring-2 focus:ring-emerald-200"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') handleSavePrice(p.id);
                       if (e.key === 'Escape') setEditingPriceId(null);
@@ -333,11 +344,15 @@ export const AdminCatalogManagementView: React.FC = () => {
                 <button
                   onClick={() => {
                     setEditingPriceId(p.id);
+                    setEditingSizeLabel(p.size_label);
                     setEditingPriceValue((p.price_cents / 100).toFixed(2));
                   }}
-                  className="text-xs font-extrabold text-sky-700 hover:underline block mx-auto py-1"
+                  className="w-full rounded-xl border border-transparent hover:border-blue-200 hover:bg-white py-2 transition-colors"
+                  title="Editar tamanho e preço"
                 >
-                  {formatCurrency(p.price_cents)}
+                  <span className="text-xs font-black text-slate-900 block">{p.size_label}</span>
+                  <span className="text-xs font-extrabold text-blue-700 block mt-1">{formatCurrency(p.price_cents)}</span>
+                  <span className="text-[10px] font-bold text-slate-600 block mt-1">Editar</span>
                 </button>
               )}
             </div>

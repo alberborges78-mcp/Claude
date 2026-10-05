@@ -360,15 +360,19 @@ class DatabaseService {
     return this.getPricesByCampaign(campaignId);
   }
 
-  public async updatePrice(id: string, newPriceCents: number): Promise<CampaignPrice | undefined> {
+  public async updatePrice(id: string, newPriceCents: number, newSizeLabel?: string): Promise<CampaignPrice | undefined> {
+    const sizeLabel = newSizeLabel?.trim();
+    const updates: { price_cents: number; size_label?: string } = { price_cents: newPriceCents };
+    if (sizeLabel) updates.size_label = sizeLabel;
+
     if (isSupabaseConfigured) {
       const { error } = await supabase
         .from('campaign_prices')
-        .update({ price_cents: newPriceCents })
+        .update(updates)
         .eq('id', id);
 
       if (error) {
-        throw new Error(`Erro ao atualizar preco no banco de dados: ${error.message}`);
+        throw new Error(`Erro ao atualizar tamanho/preço no banco de dados: ${error.message}`);
       }
     }
 
@@ -376,7 +380,7 @@ class DatabaseService {
     if (idx === -1) return undefined;
     this.state.prices[idx] = {
       ...this.state.prices[idx],
-      price_cents: newPriceCents,
+      ...updates,
     };
     return this.state.prices[idx];
   }
