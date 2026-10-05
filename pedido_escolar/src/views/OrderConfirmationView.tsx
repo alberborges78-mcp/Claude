@@ -446,9 +446,9 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
 
       {/* ── CAIXA DE PAGAMENTO PIX (se PIX selecionado e ainda não pago) ── */}
       {isPixPending && order.pix_code && (
-        <div className="bg-white border-2 border-teal-700 rounded-3xl p-5 sm:p-7 shadow-lg space-y-5 text-slate-950 overflow-hidden">
+        <div className="bg-[#0F4D49] border border-teal-700 rounded-3xl p-5 sm:p-7 shadow-lg space-y-5 text-white overflow-hidden">
           {/* Header com Logo BB e Título */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-teal-800 pb-4 bg-gradient-to-r from-teal-900 via-teal-800 to-cyan-800 -mx-5 sm:-mx-7 -mt-5 sm:-mt-7 px-5 sm:px-7 pt-5 sm:pt-7">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-teal-600/70 pb-4 bg-[#0F4D49] -mx-5 sm:-mx-7 -mt-5 sm:-mt-7 px-5 sm:px-7 pt-5 sm:pt-7">
             <div className="flex items-center gap-3">
               <div>
                 <h2 className="text-xl sm:text-2xl font-black font-display text-white">
@@ -460,7 +460,7 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
               </div>
             </div>
 
-            <span className="text-xs font-bold px-3 py-1 rounded-full bg-white text-teal-900 border border-white/70 self-start sm:self-auto">
+            <span className="text-xs font-bold px-3 py-1 rounded-full bg-teal-50 text-teal-900 border border-teal-100 self-start sm:self-auto">
               Aguardando Pagamento
             </span>
           </div>
@@ -468,7 +468,7 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
           {/* Informações Obrigatórias da Cobrança */}
           <div className="space-y-1.5 text-xs sm:text-sm">
             <p className="font-bold text-[var(--seven-text-primary)]">
-              Valor a pagar: <strong className="text-teal-700 text-xl sm:text-2xl font-black">{formatCurrency(order.total_amount_cents)}</strong>
+              Valor a pagar: <strong className="text-cyan-300 text-xl sm:text-2xl font-black">{formatCurrency(order.total_amount_cents)}</strong>
             </p>
             <p className="text-[var(--seven-text-secondary)]">
               Recebedor: <strong className="text-[var(--seven-text-primary)]">P. CAMILA CAMBRAIA DA COSTA Ltda.</strong>
@@ -476,22 +476,22 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
             <p className="text-[var(--seven-text-secondary)]">
               Instituição: <strong className="text-[var(--seven-text-primary)]">Banco do Brasil</strong>
             </p>
-            <p className="text-[10px] text-[var(--seven-text-secondary)] italic opacity-80 pt-1">
+            <p className="text-[10px] text-teal-200 font-medium italic pt-1">
               Pagamento processado pelo Banco do Brasil para a conta da empresa identificada acima.
             </p>
-            <div className="mt-3 rounded-xl border border-sky-300 bg-sky-50 px-3 py-2.5">
-              <p className="text-xs font-black text-sky-900">
+            <div className="mt-3 rounded-xl border border-teal-500 bg-[#166B64] px-3 py-2.5">
+              <p className="text-xs font-black text-white">
                 Seu pedido só será liberado para produção após a confirmação do pagamento.
               </p>
-              <p className="text-[11px] text-sky-800 font-medium mt-1">
+              <p className="text-[11px] text-teal-100 font-medium mt-1">
                 Após pagar, aguarde nesta tela. A confirmação e a liberação do QR de retirada acontecem automaticamente.
               </p>
             </div>
-            <div className="mt-3 rounded-xl border border-amber-300 bg-amber-100 px-3 py-2.5">
-              <p className="text-xs font-black text-amber-950">
+            <div className="mt-3 rounded-xl border border-teal-500 bg-[#166B64] px-3 py-2.5">
+              <p className="text-xs font-black text-white">
                 O PIX é válido por 6 horas{pixExpiryLabel ? `, até ${pixExpiryLabel}` : ''}.
               </p>
-              <p className="text-[11px] text-amber-900 font-medium mt-1">
+              <p className="text-[11px] text-teal-100 font-medium mt-1">
                 Após o vencimento, este pedido será cancelado e será necessário fazer um novo pedido.
               </p>
             </div>
@@ -521,12 +521,12 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
                 Escaneie o QR Code no aplicativo do seu banco ou copie o código Pix abaixo para efetuar o pagamento:
               </p>
 
-              <div className="bg-slate-50 border border-blue-200 p-2 rounded-xl flex items-center justify-between gap-2 shadow-xs min-w-0">
+              <div className="bg-[#166B64] border border-teal-500 p-2 rounded-xl flex items-center justify-between gap-2 shadow-xs min-w-0">
                 <input
                   type="text"
                   readOnly
                   value={order.pix_code}
-                  className="bg-transparent text-xs text-slate-900 font-mono flex-1 outline-none truncate select-all px-2"
+                  className="bg-transparent text-xs text-white font-mono flex-1 outline-none truncate select-all px-2"
                 />
                 <button
                   type="button"
