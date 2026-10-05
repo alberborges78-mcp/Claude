@@ -37,7 +37,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onNavigatePublic }) =>
   ];
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 pb-20 space-y-6">
+    <div className="seven-admin max-w-6xl mx-auto px-4 sm:px-6 py-6 pb-20 space-y-6">
       {/* Admin Subheader Bar (no-print) */}
       <div className="no-print bg-slate-900 text-white p-4 sm:p-5 rounded-3xl shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -78,7 +78,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onNavigatePublic }) =>
       </div>
 
       {/* Tabs Navigation (no-print) */}
-      <div className="no-print bg-white p-2 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-1 overflow-x-auto">
+      <div className="no-print bg-[#0F4D49] p-2 rounded-2xl border border-teal-700 shadow-sm flex items-center gap-1 overflow-x-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.key;
@@ -88,8 +88,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onNavigatePublic }) =>
               onClick={() => setActiveTab(item.key)}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all whitespace-nowrap ${
                 isActive
-                  ? 'bg-sky-600 text-white shadow-sm'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                  ? 'bg-teal-600 text-white shadow-sm'
+                  : 'text-teal-100 hover:bg-teal-700 hover:text-white'
               }`}
             >
               <Icon className="w-4 h-4" />

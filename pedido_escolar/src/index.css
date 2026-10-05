@@ -226,6 +226,68 @@
 }
 
 /* ==========================================================================
+   ADMIN SEVEN — tema operacional teal, sem alterar inputs/impressão
+   ========================================================================== */
+.seven-admin {
+  color: #ECFEFF;
+}
+.seven-admin .bg-white:not(input):not(select):not(textarea):not(.print-only) {
+  background-color: #0F4D49 !important;
+}
+.seven-admin .bg-slate-50:not(input):not(select):not(textarea),
+.seven-admin .bg-slate-100:not(input):not(select):not(textarea) {
+  background-color: #166B64 !important;
+}
+.seven-admin .border-slate-100,
+.seven-admin .border-slate-200,
+.seven-admin .border-slate-300 {
+  border-color: #2A8A82 !important;
+}
+.seven-admin .text-slate-900,
+.seven-admin .text-slate-800,
+.seven-admin .text-slate-700 {
+  color: #F0FDFA !important;
+}
+.seven-admin .text-slate-600,
+.seven-admin .text-slate-500,
+.seven-admin .text-slate-400 {
+  color: #CCFBF1 !important;
+}
+.seven-admin input,
+.seven-admin select,
+.seven-admin textarea {
+  background-color: #F8FAFC !important;
+  color: #0F172A !important;
+  border-color: #99F6E4 !important;
+}
+.seven-admin input::placeholder,
+.seven-admin textarea::placeholder {
+  color: #64748B !important;
+}
+.seven-admin table thead {
+  background-color: #083B38 !important;
+  color: #FFFFFF !important;
+}
+.seven-admin table tbody tr {
+  border-color: #2A8A82 !important;
+}
+.seven-admin table tbody tr:hover {
+  background-color: #166B64 !important;
+}
+
+@media print {
+  .seven-admin,
+  .seven-admin * {
+    color: #000000 !important;
+  }
+  .seven-admin .bg-white,
+  .seven-admin .bg-slate-50,
+  .seven-admin .bg-slate-100 {
+    background: #FFFFFF !important;
+  }
+}
+
+/* ==========================================================================
    PRINT — mantido idêntico ao original
    ========================================================================== */
 @media print {

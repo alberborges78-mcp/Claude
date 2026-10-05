@@ -354,7 +354,7 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
             className={`p-3 rounded-xl border ${
               isPaid
                 ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-400'
-                : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-400'
+                : 'bg-red-50 border-red-300 text-red-700'
             }`}
           >
             <span className="text-xs font-bold uppercase tracking-wider opacity-80 block">Pagamento</span>
@@ -460,7 +460,7 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
               </div>
             </div>
 
-            <span className="text-xs font-bold px-3 py-1 rounded-full bg-teal-50 text-teal-900 border border-teal-100 self-start sm:self-auto">
+            <span className="text-xs font-black px-3 py-1 rounded-full bg-red-50 text-red-700 border border-red-300 self-start sm:self-auto">
               Aguardando Pagamento
             </span>
           </div>

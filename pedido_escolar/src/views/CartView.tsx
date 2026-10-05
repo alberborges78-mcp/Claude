@@ -388,37 +388,7 @@ export const CartView: React.FC<CartViewProps> = ({ onNavigate }) => {
                       Geração de QR Code e chave Copia e Cola instantâneos para pagamento.
                     </p>
                   </div>
-                </label>
-
-                {/* Option 2: Pagar na Loja */}
-                <label
-                  className={`flex items-start gap-3.5 p-4 rounded-2xl border-2 cursor-pointer transition-all ${
-                    paymentMethod === 'LOJA'
-                      ? 'border-teal-600 bg-teal-50 dark:bg-teal-900/30 shadow-xs'
-                      : 'border-[var(--seven-border-default)] hover:border-[var(--seven-border-focus)] bg-[var(--seven-surface-card)]'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="payment_method"
-                    value="LOJA"
-                    checked={paymentMethod === 'LOJA'}
-                    onChange={() => setPaymentMethod('LOJA')}
-                    className="mt-1 text-teal-600 focus:ring-teal-500 h-4 w-4"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <StoreIcon className="w-4 h-4 text-[var(--seven-text-primary)] shrink-0" />
-                      <span className="text-xs sm:text-sm font-black text-[var(--seven-text-primary)]">
-                        Pagar na Loja Física
-                      </span>
-                    </div>
-                    <p className="text-xs text-[var(--seven-text-secondary)] mt-1 leading-relaxed">
-                      Pedido confirmado imediatamente. Pagamento no balcão no momento da retirada.
-                    </p>
-                  </div>
-                </label>
-              </div>
+                </label>`r`n</div>
 
               {/* Box de Resumo Financeiro */}
               <div className="pt-4 border-t border-[var(--seven-border-default)] space-y-2.5 bg-[var(--seven-surface-input)] rounded-2xl p-4 border">
