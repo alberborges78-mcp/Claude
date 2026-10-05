@@ -171,11 +171,23 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
       }
     };
 
+    // Check immediately, then keep polling while the PIX is pending.
+    void checkPaymentStatus();
     const intervalId = window.setInterval(checkPaymentStatus, 5000);
+
+    // Mobile banking usually sends the browser to the background. Re-check as
+    // soon as the customer returns to this tab instead of waiting for the timer.
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        void checkPaymentStatus();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
       cancelled = true;
       window.clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [order?.id, order?.payment_method, order?.payment_status, order?.order_status, qrToken]);
 
@@ -467,6 +479,14 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
             <p className="text-[10px] text-[var(--seven-text-secondary)] italic opacity-80 pt-1">
               Pagamento processado pelo Banco do Brasil para a conta da empresa identificada acima.
             </p>
+            <div className="mt-3 rounded-xl border border-sky-300 bg-sky-50/90 dark:bg-sky-900/20 dark:border-sky-700 px-3 py-2.5">
+              <p className="text-xs font-black text-sky-900 dark:text-sky-300">
+                Seu pedido só será liberado para produção após a confirmação do pagamento.
+              </p>
+              <p className="text-[11px] text-sky-800 dark:text-sky-400 mt-1">
+                Após pagar, aguarde nesta tela. A confirmação e a liberação do QR de retirada acontecem automaticamente.
+              </p>
+            </div>
             <div className="mt-3 rounded-xl border border-amber-300 bg-amber-100/80 dark:bg-amber-900/30 dark:border-amber-700 px-3 py-2.5">
               <p className="text-xs font-black text-amber-900 dark:text-amber-300">
                 O PIX é válido por 6 horas{pixExpiryLabel ? `, até ${pixExpiryLabel}` : ''}.
