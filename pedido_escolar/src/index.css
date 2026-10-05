@@ -40,15 +40,15 @@
     --seven-color-info-bg:        #EFF6FF;  /* blue-50                        */
 
     /* --- Superfícies ------------------------------------------------------- */
-    --seven-surface-page:         #0D9488;  /* teal-600 — fundo geral novo    */
-    --seven-surface-conceito:     #0D9488;  /* teal-600 — fallback idêntico   */
-    --seven-surface-card:         #EEF7F4;  /* teal-gelo — cards públicos     */
-    --seven-surface-input:        #F4FAF8;  /* teal-gelo claro — inputs       */
-    --seven-surface-brand:        #0D9488;  /* teal-600 — cards em destaque   */
+    --seven-surface-page:         #F8FAFC;  /* slate-50 — base clara Preline */
+    --seven-surface-conceito:     #F8FAFC;
+    --seven-surface-card:         #FFFFFF;  /* cards brancos, alto contraste  */
+    --seven-surface-input:        #F8FAFC;  /* inputs claros                  */
+    --seven-surface-brand:        #0F766E;  /* teal-700 — destaque Seven      */
 
     /* --- Bordas ------------------------------------------------------------ */
-    --seven-border-default:       #D1EAE3;  /* teal-100 — borda padrão        */
-    --seven-border-focus:         #0F766E;  /* teal-700 — borda de foco       */
+    --seven-border-default:       #E2E8F0;  /* slate-200 — borda limpa        */
+    --seven-border-focus:         #2563EB;  /* blue-600 — foco visível        */
 
     /* --- Texto ------------------------------------------------------------- */
     --seven-text-primary:         #0F172A;  /* petroleum/slate-900            */
@@ -204,7 +204,7 @@
 }
 
 .animate-splash-cinematic {
-  animation: splashCinematic 6s forwards;
+  animation: splashCinematic 0.9s forwards;
 }
 
 /* ==========================================================================

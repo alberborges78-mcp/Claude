@@ -16,7 +16,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onNavigate, theme, 
   const { isAuthenticated } = useAuth();
 
   return (
-    <header className="sticky top-0 z-40 bg-[var(--seven-surface-card)] border-b border-[var(--seven-border-default)] shadow-sm transition-colors duration-200">
+    <header className="sticky top-0 z-40 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 shadow-sm transition-colors duration-200">
 
       {/* ── Announcement bar ─────────────────────────────────────────────── */}
       {/* Preservado: conteúdo e função. Visual: blue-900 sólido (sem gradiente) */}
@@ -78,7 +78,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onNavigate, theme, 
           {/* Bloco de texto da marca — encolhe com min-w-0 quando necessário */}
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 sm:gap-2">
-              <span className="font-display font-black text-base sm:text-lg tracking-tight text-gray-900 truncate leading-none">
+              <span className="font-display font-black text-base sm:text-lg tracking-tight text-slate-950 dark:text-white truncate leading-none">
                 SEVEN
               </span>
               {/* Badge MALHARIA — oculto abaixo de sm para liberar ~72px em 320px.
@@ -89,7 +89,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onNavigate, theme, 
             </div>
             {/* Subidentificação — oculta abaixo de sm (sem xs inválido).
                 "Colégio Conceito 2026" é informação secundária e pode esperar sm+. */}
-            <p className="hidden sm:block text-xs text-gray-400 font-medium truncate mt-0.5 leading-none">
+            <p className="hidden sm:block text-xs text-slate-600 dark:text-slate-300 font-semibold truncate mt-0.5 leading-none">
               Colégio Conceito 2026
             </p>
           </div>

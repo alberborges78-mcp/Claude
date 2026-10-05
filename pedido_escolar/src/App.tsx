@@ -90,8 +90,8 @@ function MainApp() {
   return (
     <div className={`min-h-screen flex flex-col font-sans transition-colors duration-200 relative z-0 text-[var(--seven-text-primary)] ${
       isPublicView 
-        ? "bg-[var(--seven-surface-page)] bg-[url('/background-conceito.png')] bg-cover bg-center bg-fixed" 
-        : "bg-slate-50 dark:bg-slate-900"
+        ? "bg-slate-50 dark:bg-slate-950 bg-[url('/background-conceito.png')] bg-cover bg-center bg-fixed bg-blend-soft-light" 
+        : "bg-slate-50 dark:bg-slate-950"
     }`}>
       <Header currentView={currentView} onNavigate={handleNavigate} theme={theme} onToggleTheme={toggleTheme} />
 

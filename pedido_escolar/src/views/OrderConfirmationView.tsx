@@ -446,15 +446,15 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
 
       {/* ── CAIXA DE PAGAMENTO PIX (se PIX selecionado e ainda não pago) ── */}
       {isPixPending && order.pix_code && (
-        <div className="bg-[#FFFBE6] dark:bg-[#1a2e1a] border-2 border-[#F5E050] dark:border-[#3d5c3d] rounded-2xl p-5 sm:p-7 shadow-md space-y-5 text-[var(--seven-text-primary)]">
+        <div className="bg-white border-2 border-[#F5D000] rounded-3xl p-5 sm:p-7 shadow-lg space-y-5 text-slate-950 overflow-hidden">
           {/* Header com Logo BB e Título */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#F5E050]/50 dark:border-[#3d5c3d]/50 pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#F5D000] pb-4 bg-gradient-to-r from-[#FFEF00] via-[#FFE34D] to-[#FFF7B2] -mx-5 sm:-mx-7 -mt-5 sm:-mt-7 px-5 sm:px-7 pt-5 sm:pt-7">
             <div className="flex items-center gap-3">
               <div>
-                <h2 className="text-base sm:text-lg font-black font-display text-[#003399] dark:text-[#66B2FF]">
+                <h2 className="text-xl sm:text-2xl font-black font-display text-[#003399]">
                   PAGAMENTO VIA PIX
                 </h2>
-                <p className="text-[10px] text-[var(--seven-text-secondary)] mt-0.5 uppercase tracking-wide font-bold">
+                <p className="text-[10px] text-[#003399] mt-0.5 uppercase tracking-wide font-black">
                   Banco do Brasil
                 </p>
               </div>
@@ -468,7 +468,7 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
           {/* Informações Obrigatórias da Cobrança */}
           <div className="space-y-1.5 text-xs sm:text-sm">
             <p className="font-bold text-[var(--seven-text-primary)]">
-              Valor a pagar: <strong className="text-[#003399] dark:text-[#66B2FF] text-base sm:text-lg font-black">{formatCurrency(order.total_amount_cents)}</strong>
+              Valor a pagar: <strong className="text-[#0756B8] text-xl sm:text-2xl font-black">{formatCurrency(order.total_amount_cents)}</strong>
             </p>
             <p className="text-[var(--seven-text-secondary)]">
               Recebedor: <strong className="text-[var(--seven-text-primary)]">P. CAMILA CAMBRAIA DA COSTA Ltda.</strong>
@@ -521,12 +521,12 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
                 Escaneie o QR Code no aplicativo do seu banco ou copie o código Pix abaixo para efetuar o pagamento:
               </p>
 
-              <div className="bg-white dark:bg-[#0f1f0f] border border-[#003399]/20 dark:border-[#66B2FF]/20 p-2 rounded-xl flex items-center justify-between gap-2 shadow-xs min-w-0">
+              <div className="bg-slate-50 border border-blue-200 p-2 rounded-xl flex items-center justify-between gap-2 shadow-xs min-w-0">
                 <input
                   type="text"
                   readOnly
                   value={order.pix_code}
-                  className="bg-transparent text-xs text-[var(--seven-text-primary)] font-mono flex-1 outline-none truncate select-all px-2"
+                  className="bg-transparent text-xs text-slate-900 font-mono flex-1 outline-none truncate select-all px-2"
                 />
                 <button
                   type="button"

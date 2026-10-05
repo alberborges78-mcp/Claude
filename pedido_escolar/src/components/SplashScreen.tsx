@@ -5,15 +5,14 @@ export const SplashScreen: React.FC = () => {
   const [isFadingOut, setIsFadingOut] = useState(false);
 
   useEffect(() => {
-    // Start fading out after 4.3 seconds
+    // Splash curto: identidade visual sem bloquear a entrada no sistema.
     const fadeOutTimer = setTimeout(() => {
       setIsFadingOut(true);
-    }, 4300);
+    }, 550);
 
-    // Completely unmount after 6 seconds
     const unmountTimer = setTimeout(() => {
       setIsVisible(false);
-    }, 6000);
+    }, 900);
 
     return () => {
       clearTimeout(fadeOutTimer);
@@ -28,7 +27,7 @@ export const SplashScreen: React.FC = () => {
       className={`fixed inset-0 z-50 flex items-center justify-center bg-[#F8FAFC] transition-opacity ease-in-out ${
         isFadingOut ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}
-      style={{ transitionDuration: '1700ms' }}
+      style={{ transitionDuration: '350ms' }}
     >
       <div className="w-full h-[100dvh] flex items-center justify-center p-4">
         <img
