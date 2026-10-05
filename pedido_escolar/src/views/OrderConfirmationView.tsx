@@ -446,21 +446,21 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
 
       {/* ── CAIXA DE PAGAMENTO PIX (se PIX selecionado e ainda não pago) ── */}
       {isPixPending && order.pix_code && (
-        <div className="bg-white border-2 border-[#F5D000] rounded-3xl p-5 sm:p-7 shadow-lg space-y-5 text-slate-950 overflow-hidden">
+        <div className="bg-white border-2 border-teal-700 rounded-3xl p-5 sm:p-7 shadow-lg space-y-5 text-slate-950 overflow-hidden">
           {/* Header com Logo BB e Título */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#F5D000] pb-4 bg-gradient-to-r from-[#FFEF00] via-[#FFE34D] to-[#FFF7B2] -mx-5 sm:-mx-7 -mt-5 sm:-mt-7 px-5 sm:px-7 pt-5 sm:pt-7">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-teal-800 pb-4 bg-gradient-to-r from-teal-900 via-teal-800 to-cyan-800 -mx-5 sm:-mx-7 -mt-5 sm:-mt-7 px-5 sm:px-7 pt-5 sm:pt-7">
             <div className="flex items-center gap-3">
               <div>
-                <h2 className="text-xl sm:text-2xl font-black font-display text-[#003399]">
+                <h2 className="text-xl sm:text-2xl font-black font-display text-white">
                   PAGAMENTO VIA PIX
                 </h2>
-                <p className="text-[10px] text-[#003399] mt-0.5 uppercase tracking-wide font-black">
+                <p className="text-[10px] text-cyan-100 mt-0.5 uppercase tracking-wide font-black">
                   Banco do Brasil
                 </p>
               </div>
             </div>
 
-            <span className="text-xs font-bold px-3 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300/60 self-start sm:self-auto">
+            <span className="text-xs font-bold px-3 py-1 rounded-full bg-white text-teal-900 border border-white/70 self-start sm:self-auto">
               Aguardando Pagamento
             </span>
           </div>
@@ -468,7 +468,7 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
           {/* Informações Obrigatórias da Cobrança */}
           <div className="space-y-1.5 text-xs sm:text-sm">
             <p className="font-bold text-[var(--seven-text-primary)]">
-              Valor a pagar: <strong className="text-[#0756B8] text-xl sm:text-2xl font-black">{formatCurrency(order.total_amount_cents)}</strong>
+              Valor a pagar: <strong className="text-teal-700 text-xl sm:text-2xl font-black">{formatCurrency(order.total_amount_cents)}</strong>
             </p>
             <p className="text-[var(--seven-text-secondary)]">
               Recebedor: <strong className="text-[var(--seven-text-primary)]">P. CAMILA CAMBRAIA DA COSTA Ltda.</strong>
@@ -501,7 +501,7 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
           <div className="flex flex-col sm:flex-row items-center gap-6 pt-2">
             {/* QR Code PIX */}
             <div className="flex flex-col items-center gap-2 flex-shrink-0">
-              <p className="text-[10px] font-black uppercase tracking-wider text-[#003399]">
+              <p className="text-[10px] font-black uppercase tracking-wider text-teal-800">
                 QR CODE PARA PAGAMENTO PIX
               </p>
               <div className="bg-white p-3.5 rounded-2xl border-2 border-blue-200 shadow-sm">
@@ -531,7 +531,7 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
                 <button
                   type="button"
                   onClick={handleCopyPix}
-                  className="min-h-[44px] px-4 py-2 bg-[#003399] hover:bg-[#002266] active:scale-95 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 shadow-xs transition-all shrink-0 cursor-pointer"
+                  className="min-h-[44px] px-4 py-2 bg-teal-700 hover:bg-teal-800 active:scale-95 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 shadow-xs transition-all shrink-0 cursor-pointer"
                 >
                   {copiedPix ? (
                     <>

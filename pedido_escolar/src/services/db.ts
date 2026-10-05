@@ -360,6 +360,32 @@ class DatabaseService {
     return this.getPricesByCampaign(campaignId);
   }
 
+  public async createPrice(campaignId: string, sizeLabel: string, priceCents: number, orderIndex: number): Promise<void> {
+    const label = sizeLabel.trim();
+    if (!label || priceCents <= 0) throw new Error('Tamanho e preço são obrigatórios.');
+
+    if (isSupabaseConfigured) {
+      const { error } = await supabase.from('campaign_prices').insert({
+        campaign_id: campaignId,
+        size_label: label,
+        category: 'adulto_padrao',
+        price_cents: priceCents,
+        order_index: orderIndex,
+      });
+      if (error) throw new Error(`Erro ao adicionar tamanho: ${error.message}`);
+      return;
+    }
+  }
+
+  public async deletePrice(id: string): Promise<void> {
+    if (isSupabaseConfigured) {
+      const { error } = await supabase.from('campaign_prices').delete().eq('id', id);
+      if (error) throw new Error(`Erro ao excluir tamanho: ${error.message}`);
+      return;
+    }
+    this.state.prices = this.state.prices.filter((p) => p.id !== id);
+  }
+
   public async updatePrice(id: string, newPriceCents: number, newSizeLabel?: string): Promise<CampaignPrice | undefined> {
     const sizeLabel = newSizeLabel?.trim();
     const updates: { price_cents: number; size_label?: string } = { price_cents: newPriceCents };

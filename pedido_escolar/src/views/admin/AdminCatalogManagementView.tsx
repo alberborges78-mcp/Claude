@@ -51,12 +51,41 @@ export const AdminCatalogManagementView: React.FC = () => {
   );
   const [campaignSavedFeedback, setCampaignSavedFeedback] = useState(false);
 
-  // Price edits
-  const [editingPriceId, setEditingPriceId] = useState<string | null>(null);
-  const [editingPriceValue, setEditingPriceValue] = useState<string>('');
-  const [editingSizeLabel, setEditingSizeLabel] = useState<string>('');
+  // Grade de tamanhos: edição em lote, persistida somente no botão Salvar.
+  const [draftPrices, setDraftPrices] = useState<any[]>([]);
+  const [deletedPriceIds, setDeletedPriceIds] = useState<string[]>([]);
   const [isSavingPrice, setIsSavingPrice] = useState(false);
   const [priceSavedFeedback, setPriceSavedFeedback] = useState(false);
+
+  React.useEffect(() => {
+    setDraftPrices(prices.map((p) => ({
+      ...p,
+      _price: (p.price_cents / 100).toFixed(2).replace('.', ','),
+      _new: false,
+    })));
+    setDeletedPriceIds([]);
+  }, [prices]);
+
+  const updateDraftPrice = (key: string, field: 'size_label' | '_price', value: string) => {
+    setDraftPrices((current) => current.map((p) => (p.id === key ? { ...p, [field]: value } : p)));
+  };
+
+  const handleAddPriceRow = () => {
+    if (!activeCampaign) return;
+    setDraftPrices((current) => [...current, {
+      id: `new-${Date.now()}`,
+      campaign_id: activeCampaign.id,
+      size_label: '',
+      _price: '',
+      _new: true,
+      order_index: current.length,
+    }]);
+  };
+
+  const handleRemovePriceRow = (row: any) => {
+    if (!row._new) setDeletedPriceIds((current) => [...current, row.id]);
+    setDraftPrices((current) => current.filter((p) => p.id !== row.id));
+  };
 
   const handleAddClass = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,23 +121,39 @@ export const AdminCatalogManagementView: React.FC = () => {
     setRefresh((p) => p + 1);
   };
 
-  const handleSavePrice = async (id: string) => {
-    const numeric = parseFloat(editingPriceValue.replace(',', '.'));
-    if (isNaN(numeric) || numeric <= 0) return;
-    const cents = Math.round(numeric * 100);
-    const sizeLabel = editingSizeLabel.trim();
-    if (!sizeLabel) return;
-    
+  const handleSaveAllPrices = async () => {
+    if (!activeCampaign) return;
+
+    const normalized = draftPrices.map((p) => ({
+      ...p,
+      label: p.size_label.trim(),
+      cents: Math.round(parseFloat(String(p._price).replace(',', '.')) * 100),
+    }));
+    if (normalized.some((p) => !p.label || !Number.isFinite(p.cents) || p.cents <= 0)) {
+      alert('Preencha todos os tamanhos e preços antes de salvar.');
+      return;
+    }
+    const labels = normalized.map((p) => p.label.toLocaleLowerCase('pt-BR'));
+    if (new Set(labels).size !== labels.length) {
+      alert('Não pode haver tamanhos com o mesmo nome na campanha.');
+      return;
+    }
+
     setIsSavingPrice(true);
     try {
-      await db.updatePrice(id, cents, sizeLabel);
-      setEditingPriceId(null);
-      setRefresh((p) => p + 1);
+      for (const id of deletedPriceIds) await db.deletePrice(id);
+      for (let index = 0; index < normalized.length; index += 1) {
+        const p = normalized[index];
+        if (p._new) await db.createPrice(activeCampaign.id, p.label, p.cents, index);
+        else await db.updatePrice(p.id, p.cents, p.label);
+      }
       setPriceSavedFeedback(true);
       setTimeout(() => setPriceSavedFeedback(false), 3000);
+      setRefresh((p) => p + 1);
     } catch (error: any) {
       console.error(error);
-      alert(error.message || 'Erro ao salvar o preço. Tente novamente.');
+      alert(error.message || 'Erro ao salvar a tabela de tamanhos. Os dados serão recarregados.');
+      setRefresh((p) => p + 1);
     } finally {
       setIsSavingPrice(false);
     }
@@ -311,67 +356,40 @@ export const AdminCatalogManagementView: React.FC = () => {
           </div>
         )}
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-2.5">
-          {prices.map((p) => (
-            <div
-              key={p.id}
-              className="p-3 bg-slate-50 border border-slate-200 rounded-2xl text-center space-y-1"
-            >
-              {editingPriceId === p.id ? (
-                <div className="space-y-2">
-                  <label className="block text-[10px] font-black text-slate-600 uppercase">Tamanho / Nome</label>
-                  <input
-                    type="text"
-                    value={editingSizeLabel}
-                    onChange={(e) => setEditingSizeLabel(e.target.value)}
-                    className="w-full px-2 py-2 min-h-[40px] bg-white border border-blue-400 rounded-lg text-center text-xs font-black text-slate-900 outline-none focus:ring-2 focus:ring-blue-200"
-                    autoFocus
-                  />
-                  <label className="block text-[10px] font-black text-slate-600 uppercase">Preço (R$)</label>
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    value={editingPriceValue}
-                    onChange={(e) => setEditingPriceValue(e.target.value)}
-                    className="w-full px-2 py-2 min-h-[40px] bg-white border border-emerald-500 rounded-lg text-center text-sm font-black text-emerald-800 outline-none focus:ring-2 focus:ring-emerald-200"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') handleSavePrice(p.id);
-                      if (e.key === 'Escape') setEditingPriceId(null);
-                    }}
-                  />
-                </div>
-              ) : (
-                <button
-                  onClick={() => {
-                    setEditingPriceId(p.id);
-                    setEditingSizeLabel(p.size_label);
-                    setEditingPriceValue((p.price_cents / 100).toFixed(2));
-                  }}
-                  className="w-full rounded-xl border border-transparent hover:border-blue-200 hover:bg-white py-2 transition-colors"
-                  title="Editar tamanho e preço"
-                >
-                  <span className="text-xs font-black text-slate-900 block">{p.size_label}</span>
-                  <span className="text-xs font-extrabold text-blue-700 block mt-1">{formatCurrency(p.price_cents)}</span>
-                  <span className="text-[10px] font-bold text-slate-600 block mt-1">Editar</span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {draftPrices.map((p) => (
+            <div key={p.id} className="p-3 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <label className="text-[10px] font-black text-slate-600 uppercase">Tamanho / Nome</label>
+                <button type="button" onClick={() => handleRemovePriceRow(p)} className="p-1.5 rounded-lg text-red-600 hover:bg-red-50" title="Excluir tamanho">
+                  <Trash2 className="w-4 h-4" />
                 </button>
-              )}
+              </div>
+              <input type="text" value={p.size_label} onChange={(e) => updateDraftPrice(p.id, 'size_label', e.target.value)}
+                className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-black text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+              <label className="block text-[10px] font-black text-slate-600 uppercase">Preço (R$)</label>
+              <input type="text" inputMode="decimal" value={p._price} onChange={(e) => updateDraftPrice(p.id, '_price', e.target.value)}
+                className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-black text-blue-800 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
             </div>
           ))}
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-4 border-t border-slate-100">
-          {priceSavedFeedback && (
-            <span className="text-xs font-bold text-emerald-600 flex items-center gap-1">
-              <Check className="w-4 h-4" /> Preço salvo com sucesso!
-            </span>
-          )}
-          <button
-            onClick={() => editingPriceId && handleSavePrice(editingPriceId)}
-            disabled={!editingPriceId || isSavingPrice}
-            className="w-full sm:w-auto min-h-[44px] px-8 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-sm rounded-xl shadow transition-all flex items-center justify-center"
-          >
-            {isSavingPrice ? 'SALVANDO...' : 'SALVAR'}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-200">
+          <button type="button" onClick={handleAddPriceRow}
+            className="w-full sm:w-auto min-h-[44px] px-5 py-2.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-800 font-black text-sm rounded-xl flex items-center justify-center gap-2">
+            <Plus className="w-4 h-4" /> Adicionar tamanho
           </button>
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+            {priceSavedFeedback && (
+              <span className="text-xs font-bold text-emerald-700 flex items-center gap-1">
+                <Check className="w-4 h-4" /> Tabela salva com sucesso!
+              </span>
+            )}
+            <button type="button" onClick={handleSaveAllPrices} disabled={isSavingPrice}
+              className="w-full sm:w-auto min-h-[44px] px-8 py-2.5 bg-emerald-700 hover:bg-emerald-600 disabled:bg-slate-400 text-white font-black text-sm rounded-xl shadow flex items-center justify-center">
+              {isSavingPrice ? 'SALVANDO...' : 'SALVAR TODAS AS ALTERAÇÕES'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
