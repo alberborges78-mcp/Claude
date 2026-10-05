@@ -139,6 +139,46 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
     };
   }, [order?.id, order?.payment_method, order?.payment_status, order?.pix_code]);
 
+  // While a PIX is awaiting payment, refresh the public order automatically.
+  // This does not call Banco do Brasil and never creates a new charge. It only
+  // observes the server-side status already updated by the protected scheduler.
+  useEffect(() => {
+    if (
+      !order ||
+      order.payment_method !== 'PIX' ||
+      order.payment_status !== 'AGUARDANDO_PIX' ||
+      order.order_status === 'CANCELADO'
+    ) {
+      return;
+    }
+
+    let cancelled = false;
+    let checking = false;
+
+    const checkPaymentStatus = async () => {
+      if (checking || cancelled) return;
+      checking = true;
+      try {
+        const refreshed = await db.getOrderByQrTokenAsync(qrToken);
+        if (!cancelled && refreshed) {
+          setOrder(refreshed);
+        }
+      } catch (err) {
+        // Fail-safe: keep the current screen and try again on the next interval.
+        console.warn('Falha temporária ao atualizar status do PIX:', err);
+      } finally {
+        checking = false;
+      }
+    };
+
+    const intervalId = window.setInterval(checkPaymentStatus, 5000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [order?.id, order?.payment_method, order?.payment_status, order?.order_status, qrToken]);
+
   const handleRetryPix = () => {
     if (!order || pixLoading || pixCallInFlight.current) return;
     setPixError(null);
