@@ -288,7 +288,7 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
         </div>
 
         {/* Grade de Indicadores de Status (4 colunas responsivas) */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-3 text-left">
+        <div className={`grid grid-cols-2 ${showOperationalStatuses ? 'sm:grid-cols-4' : ''} gap-2.5 pt-3 text-left`}>
           {/* Status Pedido */}
           <div className="bg-[var(--seven-surface-input)] p-3 rounded-xl border border-[var(--seven-border-default)]">
             <span className="text-xs font-bold text-[var(--seven-text-secondary)] uppercase tracking-wider block">Pedido</span>
@@ -331,7 +331,7 @@ export const OrderConfirmationView: React.FC<OrderConfirmationViewProps> = ({
 
           {/* Status Entrega */}
           <div
-            className={`p-3 rounded-xl border ${
+            className={`${showOperationalStatuses ? '' : 'hidden'} p-3 rounded-xl border ${
               isDelivered
                 ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-400'
                 : 'bg-[var(--seven-surface-input)] border-[var(--seven-border-default)] text-[var(--seven-text-primary)]'

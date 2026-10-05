@@ -204,12 +204,24 @@ function generateTxid(): string {
   return `SEV${ts}${rand}`.substring(0, 35);
 }
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Content-Type": "application/json",
+};
+
 serve(async (req) => {
+  // Browser preflight must succeed before the PIX POST can be sent.
+  if (req.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: corsHeaders });
+  }
+
   // Only accept POST
   if (req.method !== "POST") {
     return new Response(JSON.stringify({ error: "Method not allowed" }), {
       status: 405,
-      headers: { "Content-Type": "application/json" },
+      headers: corsHeaders,
     });
   }
 
@@ -223,7 +235,7 @@ serve(async (req) => {
   if (!clientId || !clientSecret || !appKey || !pixKey) {
     return new Response(
       JSON.stringify({ error: "Missing required server-side secrets" }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      { status: 500, headers: corsHeaders }
     );
   }
 
@@ -241,7 +253,7 @@ serve(async (req) => {
       JSON.stringify({
         error: "Invalid BB_PIX_ENV: must be 'sandbox' or 'production'",
       }),
-      { status: 403, headers: { "Content-Type": "application/json" } }
+      { status: 403, headers: corsHeaders }
     );
   }
 
@@ -254,12 +266,12 @@ serve(async (req) => {
     if (!oauthResult.ok) {
       return new Response(
         JSON.stringify({ oauth: "FAIL", error: oauthResult.error }),
-        { status: 502, headers: { "Content-Type": "application/json" } }
+        { status: 502, headers: corsHeaders }
       );
     }
     return new Response(
       JSON.stringify({ oauth: "ok" }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
+      { status: 200, headers: corsHeaders }
     );
   }
 
@@ -285,7 +297,7 @@ serve(async (req) => {
   if (!orderId || !uuidRegex.test(orderId)) {
     return new Response(
       JSON.stringify({ error: "Missing or invalid order_id (UUID required)" }),
-      { status: 400, headers: { "Content-Type": "application/json" } }
+      { status: 400, headers: corsHeaders }
     );
   }
 
@@ -295,7 +307,7 @@ serve(async (req) => {
   if (!supabaseUrl || !serviceRoleKey) {
     return new Response(
       JSON.stringify({ error: "Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY" }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      { status: 500, headers: corsHeaders }
     );
   }
 
@@ -318,7 +330,7 @@ serve(async (req) => {
     if (!orderRes.ok) {
       return new Response(
         JSON.stringify({ error: `Failed to fetch order: HTTP ${orderRes.status}` }),
-        { status: 502, headers: { "Content-Type": "application/json" } }
+        { status: 502, headers: corsHeaders }
       );
     }
 
@@ -332,7 +344,7 @@ serve(async (req) => {
     if (!rows || rows.length === 0) {
       return new Response(
         JSON.stringify({ error: "Order not found" }),
-        { status: 404, headers: { "Content-Type": "application/json" } }
+        { status: 404, headers: corsHeaders }
       );
     }
 
@@ -343,13 +355,13 @@ serve(async (req) => {
     if (typeof totalAmountCents !== "number" || totalAmountCents <= 0) {
       return new Response(
         JSON.stringify({ error: "Order has invalid or zero total_amount_cents" }),
-        { status: 422, headers: { "Content-Type": "application/json" } }
+        { status: 422, headers: corsHeaders }
       );
     }
   } catch (err) {
     return new Response(
       JSON.stringify({ error: `Order lookup exception: ${sanitizeError(err)}` }),
-      { status: 502, headers: { "Content-Type": "application/json" } }
+      { status: 502, headers: corsHeaders }
     );
   }
 
@@ -390,7 +402,7 @@ serve(async (req) => {
         valor: (totalAmountCents / 100).toFixed(2),
         ...(reusedExpiresAt ? { pix_expires_at: reusedExpiresAt } : {}),
       }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
+      { status: 200, headers: corsHeaders }
     );
   }
 
@@ -404,7 +416,7 @@ serve(async (req) => {
     if (!/^[A-Za-z0-9]{26,35}$/.test(recoverTxid)) {
       return new Response(
         JSON.stringify({ error: "Invalid recover_txid format" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
+        { status: 400, headers: corsHeaders }
       );
     }
 
@@ -413,7 +425,7 @@ serve(async (req) => {
     if (!oauthRecovery.ok) {
       return new Response(
         JSON.stringify({ recover: "FAIL", error: oauthRecovery.error }),
-        { status: 502, headers: { "Content-Type": "application/json" } }
+        { status: 502, headers: corsHeaders }
       );
     }
 
@@ -428,7 +440,7 @@ serve(async (req) => {
     if (!getCobResult.ok) {
       return new Response(
         JSON.stringify({ recover: "FAIL", error: getCobResult.error }),
-        { status: 502, headers: { "Content-Type": "application/json" } }
+        { status: 502, headers: corsHeaders }
       );
     }
 
@@ -440,7 +452,7 @@ serve(async (req) => {
           recover: "FAIL",
           error: `txid mismatch: expected ${recoverTxid}, got ${bbTxid || "null"}`,
         }),
-        { status: 422, headers: { "Content-Type": "application/json" } }
+        { status: 422, headers: corsHeaders }
       );
     }
 
@@ -452,7 +464,7 @@ serve(async (req) => {
           recover: "FAIL",
           error: `valor mismatch: order=${valorOriginal}, BB=${bbValor || "null"}`,
         }),
-        { status: 422, headers: { "Content-Type": "application/json" } }
+        { status: 422, headers: corsHeaders }
       );
     }
 
@@ -464,7 +476,7 @@ serve(async (req) => {
           recover: "FAIL",
           error: "BB response missing pixCopiaECola",
         }),
-        { status: 422, headers: { "Content-Type": "application/json" } }
+        { status: 422, headers: corsHeaders }
       );
     }
 
@@ -506,7 +518,7 @@ serve(async (req) => {
             txid: recoverTxid,
             pixCopiaECola: recoveredPixCode,
           }),
-          { status: 500, headers: { "Content-Type": "application/json" } }
+          { status: 500, headers: corsHeaders }
         );
       }
     } catch (err) {
@@ -518,7 +530,7 @@ serve(async (req) => {
           txid: recoverTxid,
           pixCopiaECola: recoveredPixCode,
         }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
+        { status: 500, headers: corsHeaders }
       );
     }
 
@@ -530,7 +542,7 @@ serve(async (req) => {
         status: getCobResult.data.status || null,
         valor: valorOriginal,
       }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
+      { status: 200, headers: corsHeaders }
     );
   }
 
@@ -543,7 +555,7 @@ serve(async (req) => {
         cob: "SKIP",
         error: oauthResult.error,
       }),
-      { status: 502, headers: { "Content-Type": "application/json" } }
+      { status: 502, headers: corsHeaders }
     );
   }
 
@@ -567,7 +579,7 @@ serve(async (req) => {
         txid,
         error: cobResult.error,
       }),
-      { status: 502, headers: { "Content-Type": "application/json" } }
+      { status: 502, headers: corsHeaders }
     );
   }
 
@@ -618,7 +630,7 @@ serve(async (req) => {
             txid: finalTxid,
             pixCopiaECola: finalPixCode,
           }),
-          { status: 500, headers: { "Content-Type": "application/json" } }
+          { status: 500, headers: corsHeaders }
         );
       }
     } catch (err) {
@@ -631,7 +643,7 @@ serve(async (req) => {
           txid: finalTxid,
           pixCopiaECola: finalPixCode,
         }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
+        { status: 500, headers: corsHeaders }
       );
     }
   }
@@ -650,6 +662,6 @@ serve(async (req) => {
       pix_expires_at: finalExpiresAt,
       valor: cobResult.data.valor?.original || valorOriginal,
     }),
-    { status: 200, headers: { "Content-Type": "application/json" } }
+    { status: 200, headers: corsHeaders }
   );
 });
