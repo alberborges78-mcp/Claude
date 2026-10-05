@@ -350,6 +350,10 @@ export const CartView: React.FC<CartViewProps> = ({ onNavigate }) => {
                 <p className="text-xs text-[var(--seven-text-secondary)] leading-relaxed">
                   Enviaremos o comprovante e QR de retirada automaticamente para este número.
                 </p>
+                <p className="text-[11px] text-[var(--seven-text-secondary)] leading-relaxed pt-1">
+                  Seus dados serão usados para processar o pedido, pagamento, produção, contato e retirada.
+                  {' '}<a href="/privacidade" className="font-black text-cyan-300 underline underline-offset-2">Política de Privacidade</a>.
+                </p>
               </div>
 
               {/* Forma de Pagamento */}
